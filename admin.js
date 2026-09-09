@@ -2,52 +2,56 @@ import { db } from "./firebase.js";
 
 
 import {
+ collection,
+ getDocs,
+ deleteDoc,
+ doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-collection,
-
-getDocs,
-
-deleteDoc,
-
-doc
-
-}
-
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-
-
-let password="1234";
 
 let data=[];
 
 
+const ADMIN_PASSWORD = "1234";
+
+
+
+// เข้าระบบ
 
 window.login=function(){
 
 
-if(pass.value==password){
+let input=document.getElementById("pass").value;
 
 
-admin.style.display="block";
+if(input===ADMIN_PASSWORD){
+
+
+document.getElementById("admin").style.display="block";
+
+
+alert("เข้าสู่ระบบแล้ว");
 
 
 load();
 
 
 }
-
 else{
+
 
 alert("รหัสผิด");
 
-}
-
 
 }
 
 
+};
 
+
+
+
+// โหลดข้อมูล
 
 async function load(){
 
@@ -78,17 +82,25 @@ id:x.id,
 
 
 
+
+
+// ล้างรายชื่อ
+
 window.clearAll=async function(){
 
 
-if(!confirm("ล้างทั้งหมด?")) return;
+let ok=confirm("ต้องการล้างรายชื่อทั้งหมดไหม");
+
+
+if(!ok)return;
 
 
 
 let snap=await getDocs(collection(db,"bids"));
 
 
-snap.forEach(async x=>{
+
+for(let x of snap.docs){
 
 
 await deleteDoc(
@@ -96,17 +108,20 @@ doc(db,"bids",x.id)
 );
 
 
-});
-
-
-alert("ล้างแล้ว");
-
-
 }
 
 
 
+alert("ล้างรายชื่อแล้ว");
 
+
+};
+
+
+
+
+
+// หมุนวงล้อ
 
 window.wheel=function(){
 
@@ -126,7 +141,7 @@ data
 
 if(list.length<2){
 
-result.innerHTML="ไม่มีคนแย่ง";
+document.getElementById("result").innerHTML="ไม่มีคนแย่ง";
 
 return;
 
@@ -136,7 +151,9 @@ return;
 
 let win=list[Math.floor(Math.random()*list.length)];
 
-result.innerHTML="ผู้ได้สิทธิ์: "+win;
+
+document.getElementById("result").innerHTML=
+"ผู้ได้สิทธิ์: "+win;
 
 
-}
+};
