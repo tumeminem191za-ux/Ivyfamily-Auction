@@ -7,23 +7,47 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-let data = [];
+let data=[];
 
 
-// หารอบประมูลประจำสัปดาห์
+// เช็กเวลาประมูล
+function auctionOpen(){
+
+ let now=new Date();
+
+ let hour=now.getHours();
+
+ let minute=now.getMinutes();
+
+
+ let time=hour*60+minute;
+
+
+ let start=21*60;
+
+ let end=21*60+40;
+
+
+ return time>=start && time<=end;
+
+}
+
+
+
+// รอบประมูลประจำสัปดาห์
 function getAuctionWeek(){
 
- let now = new Date();
+ let now=new Date();
 
- // รอบเริ่มวันเสาร์
- let day = now.getDay();
+ let day=now.getDay();
 
- // ถ้าเป็นวันอาทิตย์ให้ย้อนกลับไปเสาร์
- let diff = day === 0 ? 1 : day + 1;
+ let diff=day===0?1:day+1;
 
- let saturday = new Date();
 
- saturday.setDate(now.getDate() - diff);
+ let saturday=new Date();
+
+ saturday.setDate(now.getDate()-diff);
+
 
  return saturday.toLocaleDateString("th-TH");
 
@@ -31,24 +55,43 @@ function getAuctionWeek(){
 
 
 
-// ลงชื่อประมูล
-window.add = async function(){
+// ลงชื่อ
+window.add=async function(){
 
- let x = {
 
-  name: document.getElementById("name").value,
+ if(!auctionOpen()){
 
-  item: document.getElementById("item").value,
+  alert("ยังไม่ถึงเวลา หรือปิดประมูลแล้ว\nเปิด 21:00-21:40");
 
-  page: document.getElementById("page").value,
+  return;
 
-  piece: document.getElementById("piece").value,
+ }
 
-  week: getAuctionWeek(),
 
-  time: Date.now()
+
+ let x={
+
+
+ name:document.getElementById("name").value,
+
+
+ item:document.getElementById("item").value,
+
+
+ page:document.getElementById("page").value,
+
+
+ piece:document.getElementById("piece").value,
+
+
+ week:getAuctionWeek(),
+
+
+ time:Date.now()
+
 
  };
+
 
 
  if(!x.name){
@@ -60,20 +103,26 @@ window.add = async function(){
  }
 
 
+
  await addDoc(collection(db,"bids"),x);
 
 
- alert("ลงชื่อแล้ว");
+
+ alert("ลงชื่อเรียบร้อย");
 
 
  document.getElementById("name").value="";
+
  document.getElementById("piece").value="";
 
-};
+
+}
 
 
 
-// โหลดรายชื่อแบบ Real-time
+
+// โหลดข้อมูลสด
+
 onSnapshot(collection(db,"bids"),(snap)=>{
 
 
@@ -83,18 +132,18 @@ onSnapshot(collection(db,"bids"),(snap)=>{
  snap.forEach(doc=>{
 
 
-  let x = doc.data();
+  let x=doc.data();
 
 
-  // แสดงเฉพาะรอบปัจจุบัน
-  if(x.week == getAuctionWeek()){
+  if(x.week==getAuctionWeek()){
 
-    data.push(x);
+   data.push(x);
 
   }
 
 
  });
+
 
 
  render();
@@ -104,14 +153,16 @@ onSnapshot(collection(db,"bids"),(snap)=>{
 
 
 
+
 // แสดงรายชื่อ
+
 function render(){
 
 
- let list=document.getElementById("list");
+ document.getElementById("list").innerHTML=
 
 
- list.innerHTML = data.map(x=>
+ data.map(x=>
 
 
  `${x.name} | ${x.item} | ${x.page} | ชิ้น ${x.piece}`
@@ -120,47 +171,3 @@ function render(){
  ).join("<br>");
 
 }
-
-
-
-// วงล้อแอดมิน
-window.wheel=function(){
-
-
- let target = prompt("ใส่ชื่อไอเทมที่จะหมุน");
-
-
- let a = [
-
-  ...new Set(
-
-   data
-
-   .filter(x=>x.item==target)
-
-   .map(x=>x.name)
-
-  )
-
- ];
-
-
- if(a.length < 2){
-
-  document.getElementById("result").innerHTML =
-  "ไม่มีการแย่ง";
-
-  return;
-
- }
-
-
- let winner =
- a[Math.floor(Math.random()*a.length)];
-
-
- document.getElementById("result").innerHTML =
- "ผู้ได้สิทธิ์: " + winner;
-
-
-};
