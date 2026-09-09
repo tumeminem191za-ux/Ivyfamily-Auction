@@ -23,7 +23,7 @@ border-radius:12px;
 margin:10px 0
 }
 
-button,input{
+button{
 padding:10px;
 margin:5px
 }
@@ -41,33 +41,28 @@ margin:5px
 
 <div class="card">
 
-<h3>รหัสแอดมิน</h3>
+<h3>รายการแย่งของ</h3>
 
-<input id="pass" type="password" placeholder="ใส่รหัส">
-
-<button onclick="login()">
-เข้าใช้งาน
-</button>
-
+<div id="list"></div>
 
 </div>
 
-
-
-<div id="panel" style="display:none">
 
 
 <div class="card">
 
 <h3>วงล้อ</h3>
 
+
+<input id="target" placeholder="ชื่อไอเทม">
+
+
 <button onclick="wheel()">
-หมุนวงล้อ
+หมุน
 </button>
 
-<h2 id="result"></h2>
 
-</div>
+<h2 id="result"></h2>
 
 
 </div>
