@@ -1,21 +1,35 @@
 import { db } from "./firebase.js";
 
+
 import {
- collection,
- addDoc,
- onSnapshot,
- query,
- orderBy,
- getDocs,
- deleteDoc,
- doc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+collection,
+
+addDoc,
+
+onSnapshot,
+
+query,
+
+orderBy,
+
+getDocs,
+
+deleteDoc,
+
+doc
+
+}
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 
 let data=[];
 
 
-// หาอาทิตย์ของรอบประมูล
+
+
 function getWeek(){
 
 let now=new Date();
@@ -23,6 +37,7 @@ let now=new Date();
 let day=now.getDay();
 
 let diff=now.getDate()-day;
+
 
 let sunday=new Date(now.setDate(diff));
 
@@ -33,35 +48,96 @@ return sunday.toLocaleDateString("th-TH");
 
 
 
-// ลงชื่อ
+
+function status(){
+
+
+let now=new Date();
+
+
+let t=
+now.getHours()*60+
+now.getMinutes();
+
+
+
+let box=document.getElementById("status");
+
+
+
+if(t>=1260 && t<1270){
+
+box.innerHTML="สถานะ: เปิดรับชื่อ";
+
+}
+
+else if(t>=1270 && t<1300){
+
+box.innerHTML="สถานะ: ล็อกชื่อ";
+
+}
+
+else{
+
+box.innerHTML="สถานะ: ปิด";
+
+}
+
+
+}
+
+
+setInterval(status,1000);
+
+status();
+
+
+
+
+
+
+
 window.add=async function(){
 
 
-let name=document.getElementById("name").value;
-
-let item=document.getElementById("item").value;
-
-let page=document.getElementById("page").value;
-
-let piece=document.getElementById("piece").value;
+let x={
 
 
+name:name.value,
 
-// กันชื่อเดิม + ของเดิม
+item:item.value,
 
-let check=data.find(x=>
+page:page.value,
 
-x.name==name &&
-x.item==item &&
-x.week==getWeek()
+piece:piece.value,
+
+week:getWeek(),
+
+time:Date.now()
+
+
+};
+
+
+
+
+let same=data.find(a=>
+
+a.name==x.name &&
+
+a.item==x.item &&
+
+a.page==x.page &&
+
+a.piece==x.piece
 
 );
 
 
 
-if(check){
+if(same){
 
-alert("คุณลงชื่อไอเทมนี้แล้ว");
+alert("ลงของชิ้นนี้แล้ว");
 
 return;
 
@@ -69,48 +145,38 @@ return;
 
 
 
-await addDoc(collection(db,"bids"),{
 
-name:name,
-item:item,
-page:page,
-piece:piece,
-week:getWeek(),
-time:Date.now()
+await addDoc(collection(db,"bids"),x);
 
-});
+
+alert("ลงชื่อแล้ว");
+
+
+};
 
 
 
-document.getElementById("name").value="";
-
-document.getElementById("piece").value="";
 
 
-}
-
-
-
-// โหลด Real-time
 
 onSnapshot(
 
 query(collection(db,"bids"),orderBy("time","asc")),
 
-(snapshot)=>{
+snap=>{
 
 
 data=[];
 
 
-snapshot.forEach(doc=>{
+snap.forEach(d=>{
 
 
 data.push({
 
-id:doc.id,
+id:d.id,
 
-...doc.data()
+...d.data()
 
 });
 
@@ -121,67 +187,71 @@ id:doc.id,
 render();
 
 
-}
-
-);
+});
 
 
 
 
-// แสดงทั้งหมด
+
+
+
 
 function render(){
 
 
-document.getElementById("list").innerHTML=
+list.innerHTML=data.map(x=>
 
-data.map(x=>`
+`
 
 <div>
 
-${x.name}
-|
-${x.item}
-|
-${x.page}
-|
+${x.name} |
+
+${x.item} |
+
+${x.page} |
+
 ชิ้น ${x.piece}
 
 </div>
 
-`).join("");
+`
+
+).join("");
+
 
 }
 
 
 
-// ดูรายการตัวเอง
+
+
 
 window.showMyList=function(){
 
 
-let n=document.getElementById("myname").value;
+let n=myname.value;
 
 
-let result=data.filter(x=>x.name==n);
+let a=data.filter(x=>x.name==n);
 
 
 
-document.getElementById("mylist").innerHTML=
+mylist.innerHTML=a.map(x=>
 
-result.map(x=>`
+`
 
 <div>
 
 ${x.item}
-|
 ${x.page}
-|
 ชิ้น ${x.piece}
 
 </div>
 
-`).join("");
+`
+
+).join("");
 
 
 }
@@ -189,28 +259,25 @@ ${x.page}
 
 
 
-// วงล้อ
+
 
 window.wheel=function(){
 
 
-let target=prompt("ใส่ชื่อไอเทม");
+let target=prompt("ชื่อไอเทม");
 
 
-let players=[
-
-...new Set(
+let a=[...new Set(
 
 data
 .filter(x=>x.item==target)
 .map(x=>x.name)
 
-)
-
-];
+)];
 
 
-if(players.length<2){
+
+if(a.length<2){
 
 result.innerHTML="ไม่มีคนแย่ง";
 
@@ -220,23 +287,54 @@ return;
 
 
 
-let winner=
-
-players[Math.floor(Math.random()*players.length)];
+let w=a[Math.floor(Math.random()*a.length)];
 
 
-
-result.innerHTML=
-
-"ผู้ได้สิทธิ์: "+winner;
+result.innerHTML="ผู้ได้สิทธิ์: "+w;
 
 
-}
+};
 
 
 
 
-// ล้างข้อมูลทุกวันอาทิตย์ 04:00
+
+
+// ปุ่มล้างแอดมิน
+
+window.clearAll=async function(){
+
+
+if(!confirm("ล้างรายชื่อทั้งหมด?")) return;
+
+
+
+let snap=await getDocs(collection(db,"bids"));
+
+
+
+snap.forEach(async x=>{
+
+
+await deleteDoc(
+doc(db,"bids",x.id)
+);
+
+
+});
+
+
+alert("ล้างแล้ว");
+
+
+};
+
+
+
+
+
+
+// ล้างอัตโนมัติ อาทิตย์ 04:00
 
 async function autoClear(){
 
@@ -244,13 +342,14 @@ async function autoClear(){
 let now=new Date();
 
 
-// วันอาทิตย์ = 0
 
 if(
 
 now.getDay()==0 &&
 
-now.getHours()==4
+now.getHours()==4 &&
+
+now.getMinutes()==0
 
 ){
 
@@ -259,25 +358,23 @@ now.getHours()==4
 let snap=await getDocs(collection(db,"bids"));
 
 
-snap.forEach(async(x)=>{
+
+snap.forEach(async x=>{
 
 
-await deleteDoc(doc(db,"bids",x.id));
+await deleteDoc(
+doc(db,"bids",x.id)
+);
 
 
 });
 
 
-console.log("ล้างรายการแล้ว");
-
-
 }
 
 
 }
 
 
-
-// เช็กทุก 1 นาที
 
 setInterval(autoClear,60000);
