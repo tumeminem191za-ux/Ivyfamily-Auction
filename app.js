@@ -10,18 +10,14 @@ import {
 let data=[];
 
 
-// เช็กเวลาประมูล
+
+// เช็กเวลาเปิดประมูล
+
 function auctionOpen(){
 
  let now=new Date();
 
- let hour=now.getHours();
-
- let minute=now.getMinutes();
-
-
- let time=hour*60+minute;
-
+ let time=now.getHours()*60+now.getMinutes();
 
  let start=21*60;
 
@@ -34,7 +30,8 @@ function auctionOpen(){
 
 
 
-// รอบประมูลประจำสัปดาห์
+// รอบประมูล
+
 function getAuctionWeek(){
 
  let now=new Date();
@@ -55,52 +52,97 @@ function getAuctionWeek(){
 
 
 
+
 // ลงชื่อ
+
 window.add=async function(){
+
 
 
  if(!auctionOpen()){
 
-  alert("ยังไม่ถึงเวลา หรือปิดประมูลแล้ว\nเปิด 21:00-21:40");
+ alert("เปิดรับเฉพาะเวลา 21:00-21:40");
 
-  return;
+ return;
 
  }
+
+
+
+ let name=
+ document.getElementById("name").value;
+
+
+
+ let item=
+ document.getElementById("item").value;
+
+
+
+ let page=
+ document.getElementById("page").value;
+
+
+
+ let piece=
+ document.getElementById("piece").value;
+
+
+
+ if(!name){
+
+ alert("กรุณาใส่ชื่อ");
+
+ return;
+
+ }
+
+
+
+ // กันลงซ้ำของชิ้นเดิม
+
+ let duplicate=data.some(x=>
+
+ x.name==name &&
+
+ x.item==item &&
+
+ x.page==page &&
+
+ x.piece==piece
+
+ );
+
+
+
+ if(duplicate){
+
+ alert("คุณลงชื่อของชิ้นนี้แล้ว");
+
+ return;
+
+ }
+
 
 
 
  let x={
 
 
- name:document.getElementById("name").value,
+ name:name,
 
+ item:item,
 
- item:document.getElementById("item").value,
+ page:page,
 
-
- page:document.getElementById("page").value,
-
-
- piece:document.getElementById("piece").value,
-
+ piece:piece,
 
  week:getAuctionWeek(),
-
 
  time:Date.now()
 
 
  };
-
-
-
- if(!x.name){
-
-  alert("กรุณาใส่ชื่อ");
-
-  return;
-
- }
 
 
 
@@ -116,7 +158,9 @@ window.add=async function(){
  document.getElementById("piece").value="";
 
 
-}
+};
+
+
 
 
 
@@ -132,24 +176,25 @@ onSnapshot(collection(db,"bids"),(snap)=>{
  snap.forEach(doc=>{
 
 
-  let x=doc.data();
+ let x=doc.data();
 
 
-  if(x.week==getAuctionWeek()){
+ if(x.week==getAuctionWeek()){
 
-   data.push(x);
+ data.push(x);
 
-  }
+ }
 
 
  });
-
 
 
  render();
 
 
 });
+
+
 
 
 
@@ -164,10 +209,9 @@ function render(){
 
  data.map(x=>
 
-
  `${x.name} | ${x.item} | ${x.page} | ชิ้น ${x.piece}`
 
-
  ).join("<br>");
+
 
 }
