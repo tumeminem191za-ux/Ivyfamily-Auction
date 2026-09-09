@@ -1,49 +1,136 @@
 import { db } from "./firebase.js";
 
-
 import {
  collection,
  getDocs,
  deleteDoc,
- doc
+ doc,
+ onSnapshot,
+ query,
+ orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
 let data=[];
 
 
-const ADMIN_PASSWORD = "1234";
-
-
-
-// เข้าระบบ
+// ===== LOGIN ADMIN =====
 
 window.login=function(){
 
+let pass=document.getElementById("pass").value;
 
-let input=document.getElementById("pass").value;
 
-
-if(input===ADMIN_PASSWORD){
-
+if(pass==="1234"){
 
 document.getElementById("admin").style.display="block";
 
-
-alert("เข้าสู่ระบบแล้ว");
-
+alert("เข้าสู่ระบบสำเร็จ");
 
 load();
 
-
 }
-else{
 
+else{
 
 alert("รหัสผิด");
 
+}
+
+};
+
+
+
+// ===== โหลดข้อมูล REALTIME =====
+
+onSnapshot(
+query(collection(db,"bids"),orderBy("time","asc")),
+(snap)=>{
+
+data=[];
+
+snap.forEach(d=>{
+
+data.push({
+
+id:d.id,
+...d.data()
+
+});
+
+});
+
+
+});
+
+
+
+
+// ===== โหลดข้อมูล =====
+
+async function load(){
+
+let snap=await getDocs(collection(db,"bids"));
+
+data=[];
+
+
+snap.forEach(d=>{
+
+data.push({
+
+id:d.id,
+...d.data()
+
+});
+
+});
+
 
 }
+
+
+
+// ===== วงล้อ =====
+
+window.wheel=function(){
+
+
+let target=prompt("ใส่ชื่อไอเทม");
+
+
+let list=[
+
+...new Set(
+
+data
+.filter(x=>x.item==target)
+.map(x=>x.name)
+
+)
+
+];
+
+
+
+if(list.length<2){
+
+document.getElementById("result").innerHTML=
+"ไม่มีคนแย่ง";
+
+return;
+
+}
+
+
+
+let winner=
+list[Math.floor(Math.random()*list.length)];
+
+
+
+document.getElementById("result").innerHTML=
+"ผู้ได้สิทธิ์: "+winner;
 
 
 };
@@ -51,40 +138,7 @@ alert("รหัสผิด");
 
 
 
-// โหลดข้อมูล
-
-async function load(){
-
-
-data=[];
-
-
-let snap=await getDocs(collection(db,"bids"));
-
-
-snap.forEach(x=>{
-
-
-data.push({
-
-id:x.id,
-
-...x.data()
-
-});
-
-
-});
-
-
-}
-
-
-
-
-
-
-// ล้างรายชื่อ
+// ===== ล้างรายชื่อด้วยมือ =====
 
 window.clearAll=async function(){
 
@@ -100,13 +154,11 @@ let snap=await getDocs(collection(db,"bids"));
 
 
 
-for(let x of snap.docs){
-
+for(let d of snap.docs){
 
 await deleteDoc(
-doc(db,"bids",x.id)
+doc(db,"bids",d.id)
 );
-
 
 }
 
@@ -120,40 +172,40 @@ alert("ล้างรายชื่อแล้ว");
 
 
 
+// ===== ล้างอัตโนมัติ ทุกวันอาทิตย์ 04:00 =====
 
-// หมุนวงล้อ
-
-window.wheel=function(){
-
-
-let item=prompt("ใส่ชื่อไอเทม");
+async function autoClear(){
 
 
-let list=[...new Set(
-
-data
-.filter(x=>x.item==item)
-.map(x=>x.name)
-
-)];
+let now=new Date();
 
 
 
-if(list.length<2){
+if(
+now.getDay()==0 &&
+now.getHours()==4 &&
+now.getMinutes()==0
+){
 
-document.getElementById("result").innerHTML="ไม่มีคนแย่ง";
 
-return;
+let snap=await getDocs(collection(db,"bids"));
+
+
+
+for(let d of snap.docs){
+
+await deleteDoc(
+doc(db,"bids",d.id)
+);
+
+}
+
+
+}
+
 
 }
 
 
 
-let win=list[Math.floor(Math.random()*list.length)];
-
-
-document.getElementById("result").innerHTML=
-"ผู้ได้สิทธิ์: "+win;
-
-
-};
+setInterval(autoClear,60000);
