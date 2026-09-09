@@ -1,15 +1,81 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { db } from "./firebase.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAT5o9FpRc6cWFW9oPdYrFJHEU-pIHjbH4",
-  authDomain: "ivy-auction.firebaseapp.com",
-  projectId: "ivy-auction",
-  storageBucket: "ivy-auction.firebasestorage.app",
-  messagingSenderId: "1079698381099",
-  appId: "1:1079698381099:web:9ea830e4b4f1fdafcc4d6e"
-};
+import {
+ collection,
+ addDoc,
+ onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const app = initializeApp(firebaseConfig);
 
-export const db = getFirestore(app);
+let data=[];
+
+
+// ลงชื่อ
+window.add = async function(){
+
+ let x={
+  name: document.getElementById("name").value,
+  item: document.getElementById("item").value,
+  page: document.getElementById("page").value,
+  piece: document.getElementById("piece").value,
+  time: Date.now()
+ };
+
+ await addDoc(collection(db,"bids"),x);
+
+ document.getElementById("name").value="";
+ document.getElementById("piece").value="";
+}
+
+
+// realtime
+onSnapshot(collection(db,"bids"),(snap)=>{
+
+ data=[];
+
+ snap.forEach(doc=>{
+  data.push(doc.data());
+ });
+
+ render();
+
+});
+
+
+// แสดงชื่อ
+function render(){
+
+ document.getElementById("list").innerHTML =
+ data.map(x =>
+ `${x.name} | ${x.item} | ${x.page} | ชิ้น ${x.piece}`
+ ).join("<br>");
+
+}
+
+
+// วงล้อ
+window.wheel=function(){
+
+ let target=prompt("ใส่ชื่อไอเทมที่จะหมุน");
+
+ let a=[
+ ...new Set(
+  data
+  .filter(x=>x.item==target)
+  .map(x=>x.name)
+ )
+ ];
+
+
+ if(a.length<2){
+  document.getElementById("result").innerHTML="ไม่มีการแย่ง";
+  return;
+ }
+
+
+ let winner=a[Math.floor(Math.random()*a.length)];
+
+ document.getElementById("result").innerHTML=
+ "ผู้ได้สิทธิ์: "+winner;
+
+}
