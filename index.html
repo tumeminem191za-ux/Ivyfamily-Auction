@@ -45,7 +45,7 @@ cursor:pointer
 
 <div class="card">
 
-<h3>เวลา</h3>
+<h3 id="status"></h3>
 
 <p>
 ดูของ 21:00-21:10 |
@@ -105,7 +105,9 @@ cursor:pointer
 
 <h3>รายการประมูลของฉัน</h3>
 
+
 <input id="myname" placeholder="ใส่ชื่อ">
+
 
 <button onclick="showMyList()">
 ดูรายการ
@@ -120,10 +122,9 @@ cursor:pointer
 
 
 
-
 <div class="card">
 
-<h3>รายชื่อผู้ประมูลทั้งหมด</h3>
+<h3>รายชื่อทั้งหมด</h3>
 
 <div id="list"></div>
 
@@ -134,13 +135,21 @@ cursor:pointer
 
 <div class="card">
 
-<h3>วงล้อแอดมิน</h3>
+<h3>Admin</h3>
+
 
 <button onclick="wheel()">
 หมุนวงล้อ
 </button>
 
+
+<button onclick="clearAll()">
+ล้างรายชื่อ
+</button>
+
+
 <h2 id="result"></h2>
+
 
 </div>
 
