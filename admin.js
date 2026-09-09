@@ -1,95 +1,142 @@
-<!doctype html>
-<html lang="th">
+import { db } from "./firebase.js";
 
-<head>
 
-<meta charset="utf-8">
+import {
 
-<title>Ivyfamily Admin</title>
+collection,
 
-<style>
+getDocs,
 
-body{
-font-family:sans-serif;
-background:#101010;
-color:white;
-padding:20px
+deleteDoc,
+
+doc
+
 }
 
-.card{
-background:#222;
-padding:15px;
-border-radius:12px;
-margin:12px 0
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+
+let password="1234";
+
+let data=[];
+
+
+
+window.login=function(){
+
+
+if(pass.value==password){
+
+
+admin.style.display="block";
+
+
+load();
+
+
 }
 
-button,input{
-padding:10px;
-margin:5px
+else{
+
+alert("รหัสผิด");
+
 }
 
-</style>
 
-</head>
-
-
-<body>
-
-
-<h1>Ivyfamily Admin</h1>
-
-
-<div class="card">
-
-
-<h3>เข้าสู่ระบบ</h3>
-
-
-<input id="pass" placeholder="รหัสแอดมิน">
-
-
-<button onclick="login()">
-เข้า
-</button>
-
-
-</div>
+}
 
 
 
 
-<div id="admin" style="display:none">
+async function load(){
 
 
-<div class="card">
+data=[];
 
 
-<h3>จัดการประมูล</h3>
+let snap=await getDocs(collection(db,"bids"));
 
 
-<button onclick="wheel()">
-หมุนวงล้อ
-</button>
+snap.forEach(x=>{
 
 
-<button onclick="clearAll()">
-ล้างรายชื่อ
-</button>
+data.push({
+
+id:x.id,
+
+...x.data()
+
+});
 
 
-<h2 id="result"></h2>
+});
 
 
-</div>
-
-
-</div>
+}
 
 
 
-<script type="module" src="admin.js"></script>
+
+window.clearAll=async function(){
 
 
-</body>
+if(!confirm("ล้างทั้งหมด?")) return;
 
-</html>
+
+
+let snap=await getDocs(collection(db,"bids"));
+
+
+snap.forEach(async x=>{
+
+
+await deleteDoc(
+doc(db,"bids",x.id)
+);
+
+
+});
+
+
+alert("ล้างแล้ว");
+
+
+}
+
+
+
+
+
+window.wheel=function(){
+
+
+let item=prompt("ใส่ชื่อไอเทม");
+
+
+let list=[...new Set(
+
+data
+.filter(x=>x.item==item)
+.map(x=>x.name)
+
+)];
+
+
+
+if(list.length<2){
+
+result.innerHTML="ไม่มีคนแย่ง";
+
+return;
+
+}
+
+
+
+let win=list[Math.floor(Math.random()*list.length)];
+
+result.innerHTML="ผู้ได้สิทธิ์: "+win;
+
+
+}
