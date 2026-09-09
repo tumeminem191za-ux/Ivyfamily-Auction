@@ -1,231 +1,95 @@
-import { db } from "./firebase.js";
+<!doctype html>
+<html lang="th">
 
-import {
- collection,
- onSnapshot,
- addDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<head>
 
+<meta charset="utf-8">
 
-let data=[];
+<title>Ivyfamily Admin</title>
 
+<style>
 
-
-// โหลดข้อมูลประมูล
-
-onSnapshot(collection(db,"bids"),(snap)=>{
-
-
-data=[];
-
-
-snap.forEach(doc=>{
-
-data.push(doc.data());
-
-});
-
-
-showList();
-
-
-});
-
-
-
-
-
-// แสดงรายการของ
-
-function showList(){
-
-
-let box=document.getElementById("list");
-
-
-let group={};
-
-
-
-data.forEach(x=>{
-
-
-let key=
-x.item+" | "+x.page+" | ชิ้น "+x.piece;
-
-
-
-if(!group[key]){
-
-group[key]=[];
-
+body{
+font-family:sans-serif;
+background:#101010;
+color:white;
+padding:20px
 }
 
+.card{
+background:#222;
+padding:15px;
+border-radius:12px;
+margin:12px 0
+}
 
-group[key].push(x.name);
+button,input{
+padding:10px;
+margin:5px
+}
 
+</style>
 
-
-});
-
-
-
-box.innerHTML="";
-
-
-
-Object.keys(group).forEach(k=>{
-
-
-let count=group[k].length;
+</head>
 
 
+<body>
 
-box.innerHTML += `
+
+<h1>Ivyfamily Admin</h1>
 
 
 <div class="card">
 
 
-<b>${k}</b><br>
+<h3>เข้าสู่ระบบ</h3>
 
 
-คนแย่ง: ${count} คน
+<input id="pass" placeholder="รหัสแอดมิน">
 
 
-<br>
-
-
-<button onclick="wheel('${k}')">
-
-หมุนชิ้นนี้
-
+<button onclick="login()">
+เข้า
 </button>
 
 
 </div>
 
 
-`;
 
 
+<div id="admin" style="display:none">
 
-});
-
-
-}
-
-
-
-
-
-// หมุน
-
-window.wheel=async function(target){
-
-
-
-let a=data
-
-.filter(x=>
-
-(x.item+" | "+x.page+" | ชิ้น "+x.piece)==target
-
-)
-
-.map(x=>x.name);
-
-
-
-a=[...new Set(a)];
-
-
-
-if(a.length<2){
-
-
-document.getElementById("result").innerHTML=
-
-"ไม่มีคนแย่ง";
-
-
-return;
-
-}
-
-
-
-let winner=
-
-a[Math.floor(Math.random()*a.length)];
-
-
-
-document.getElementById("result").innerHTML=
-
-"ผู้ได้สิทธิ์: "+winner;
-
-
-
-await addDoc(collection(db,"history"),{
-
-
-item:target,
-
-
-winner:winner,
-
-
-time:new Date().toLocaleString("th-TH")
-
-
-});
-
-
-
-}
-
-
-
-
-
-// ประวัติ
-
-onSnapshot(collection(db,"history"),(snap)=>{
-
-
-let h="";
-
-
-
-snap.forEach(doc=>{
-
-
-let x=doc.data();
-
-
-h += `
 
 <div class="card">
 
-${x.item}<br>
 
-ผู้ชนะ: ${x.winner}<br>
+<h3>จัดการประมูล</h3>
 
-เวลา: ${x.time}
+
+<button onclick="wheel()">
+หมุนวงล้อ
+</button>
+
+
+<button onclick="clearAll()">
+ล้างรายชื่อ
+</button>
+
+
+<h2 id="result"></h2>
+
 
 </div>
 
-`;
+
+</div>
 
 
 
-});
+<script type="module" src="admin.js"></script>
 
 
+</body>
 
-document.getElementById("history").innerHTML=h;
-
-
-
-});
+</html>
