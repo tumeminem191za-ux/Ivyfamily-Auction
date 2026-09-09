@@ -11,78 +11,106 @@ let data=[];
 
 
 
-// โหลดรายการประมูล
+// โหลดข้อมูลประมูล
 
 onSnapshot(collection(db,"bids"),(snap)=>{
 
- data=[];
 
- snap.forEach(doc=>{
-
-  data.push(doc.data());
-
- });
+data=[];
 
 
- showList();
+snap.forEach(doc=>{
+
+data.push(doc.data());
+
+});
+
+
+showList();
+
 
 });
 
 
 
 
-// แสดงรายการของที่มีคนแย่ง
+
+// แสดงรายการของ
 
 function showList(){
 
- let box=document.getElementById("list");
 
- let group={};
-
-
- data.forEach(x=>{
+let box=document.getElementById("list");
 
 
-  let key=
-  x.item+" | "+x.page+" | ชิ้น "+x.piece;
-
-
-  if(!group[key]){
-
-   group[key]=[];
-
-  }
-
-
-  group[key].push(x.name);
-
-
- });
+let group={};
 
 
 
- box.innerHTML="";
+data.forEach(x=>{
 
 
- Object.keys(group).forEach(k=>{
+let key=
+x.item+" | "+x.page+" | ชิ้น "+x.piece;
 
 
-  box.innerHTML += `
 
-  <div class="card">
+if(!group[key]){
 
-  <b>${k}</b><br>
+group[key]=[];
 
-  จำนวนคนแย่ง: ${group[k].length} คน<br>
-
-  ${group[k].join(", ")}
-
-  </div>
-
-  `;
+}
 
 
- });
+group[key].push(x.name);
+
+
+
+});
+
+
+
+box.innerHTML="";
+
+
+
+Object.keys(group).forEach(k=>{
+
+
+let count=group[k].length;
+
+
+
+box.innerHTML += `
+
+
+<div class="card">
+
+
+<b>${k}</b><br>
+
+
+คนแย่ง: ${count} คน
+
+
+<br>
+
+
+<button onclick="wheel('${k}')">
+
+หมุนชิ้นนี้
+
+</button>
+
+
+</div>
+
+
+`;
+
+
+
+});
 
 
 }
@@ -91,64 +119,68 @@ function showList(){
 
 
 
-// หมุนวงล้อ + บันทึกผล
+// หมุน
 
-window.wheel = async function(){
-
-
- let target=
- document.getElementById("target").value;
+window.wheel=async function(target){
 
 
 
- let a=data
+let a=data
 
- .filter(x=>x.item==target)
+.filter(x=>
 
- .map(x=>x.name);
+(x.item+" | "+x.page+" | ชิ้น "+x.piece)==target
 
+)
 
-
- a=[...new Set(a)];
-
-
-
- if(a.length<2){
-
-
- document.getElementById("result").innerHTML=
- "ของชิ้นนี้ไม่มีคนแย่ง";
-
-
- return;
-
-
- }
+.map(x=>x.name);
 
 
 
- let winner=
- a[Math.floor(Math.random()*a.length)];
+a=[...new Set(a)];
 
 
 
- document.getElementById("result").innerHTML=
-
- "ผู้ได้สิทธิ์: "+winner;
+if(a.length<2){
 
 
+document.getElementById("result").innerHTML=
 
- // บันทึกประวัติ
+"ไม่มีคนแย่ง";
 
- await addDoc(collection(db,"history"),{
 
-  item:target,
+return;
 
-  winner:winner,
+}
 
-  time:new Date().toLocaleString("th-TH")
 
- });
+
+let winner=
+
+a[Math.floor(Math.random()*a.length)];
+
+
+
+document.getElementById("result").innerHTML=
+
+"ผู้ได้สิทธิ์: "+winner;
+
+
+
+await addDoc(collection(db,"history"),{
+
+
+item:target,
+
+
+winner:winner,
+
+
+time:new Date().toLocaleString("th-TH")
+
+
+});
+
 
 
 }
@@ -156,41 +188,44 @@ window.wheel = async function(){
 
 
 
-// โหลดประวัติ
+
+// ประวัติ
 
 onSnapshot(collection(db,"history"),(snap)=>{
 
 
- let h="";
-
-
- snap.forEach(doc=>{
-
-
- let x=doc.data();
+let h="";
 
 
 
- h += `
-
- <div class="card">
-
- ของ: ${x.item}<br>
-
- ผู้ชนะ: ${x.winner}<br>
-
- เวลา: ${x.time}
-
- </div>
-
- `;
+snap.forEach(doc=>{
 
 
- });
+let x=doc.data();
+
+
+h += `
+
+<div class="card">
+
+${x.item}<br>
+
+ผู้ชนะ: ${x.winner}<br>
+
+เวลา: ${x.time}
+
+</div>
+
+`;
 
 
 
- document.getElementById("history").innerHTML=h;
+});
+
+
+
+document.getElementById("history").innerHTML=h;
+
 
 
 });
