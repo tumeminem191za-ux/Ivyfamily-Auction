@@ -24,38 +24,7 @@ let data=[];
 
 
 
-function auctionOpen(){
-
-
-let now=new Date();
-
-
-let time=
-now.getHours()*60+
-now.getMinutes();
-
-
-
-return time>=1270 && time<=1300;
-
-
-}
-
-
-
-
-
 window.add=async function(){
-
-
-if(!auctionOpen()){
-
-alert("เปิดรับ 21:10-21:40");
-
-return;
-
-}
-
 
 
 let x={
@@ -73,7 +42,6 @@ time:Date.now()
 
 
 };
-
 
 
 
@@ -104,56 +72,10 @@ return;
 await addDoc(collection(db,"bids"),x);
 
 
-
 alert("ลงชื่อแล้ว");
 
 
 };
-
-
-
-
-
-
-
-window.removeBid=async function(){
-
-
-
-let player=prompt("ใส่ชื่อผู้เล่น");
-
-
-let target=data.find(x=>
-
-x.name==player
-
-);
-
-
-
-if(!target){
-
-alert("ไม่พบชื่อ");
-
-return;
-
-}
-
-
-
-await deleteDoc(
-
-doc(db,"bids",target.id)
-
-);
-
-
-
-alert("ถอนชื่อแล้ว");
-
-
-};
-
 
 
 
@@ -177,9 +99,7 @@ x.id=doc.id;
 data.push(x);
 
 
-
 });
-
 
 
 render();
@@ -192,8 +112,8 @@ render();
 
 
 
-function render(){
 
+function render(){
 
 
 list.innerHTML=data.map(x=>
@@ -204,6 +124,85 @@ list.innerHTML=data.map(x=>
 
 ).join("<br>");
 
+}
 
+
+
+window.showMyList=function(){
+
+
+let n=myname.value;
+
+
+let box=document.getElementById("mylist");
+
+
+let arr=data.filter(x=>x.name==n);
+
+
+
+if(arr.length==0){
+
+box.innerHTML="ไม่พบรายการ";
+
+return;
 
 }
+
+
+
+
+box.innerHTML="";
+
+
+
+arr.forEach(x=>{
+
+
+box.innerHTML+=`
+
+<div class="card">
+
+${x.item}<br>
+
+${x.page} | ชิ้น ${x.piece}
+
+<br>
+
+<button onclick="removeBid('${x.id}')">
+
+ถอนรายการนี้
+
+</button>
+
+
+</div>
+
+`;
+
+
+});
+
+
+};
+
+
+
+
+
+
+
+window.removeBid=async function(id){
+
+
+await deleteDoc(
+
+doc(db,"bids",id)
+
+);
+
+
+alert("ถอนรายการแล้ว");
+
+
+};
