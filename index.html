@@ -7,7 +7,6 @@
 
 <title>Ivyfamily.Auction</title>
 
-
 <style>
 
 body{
@@ -17,7 +16,6 @@ color:white;
 padding:20px
 }
 
-
 .card{
 background:#222;
 padding:15px;
@@ -25,12 +23,10 @@ border-radius:12px;
 margin:12px 0
 }
 
-
 input,select,button{
 padding:8px;
 margin:4px
 }
-
 
 button{
 cursor:pointer
@@ -51,16 +47,13 @@ cursor:pointer
 
 <h3>เวลา</h3>
 
-<p>
-ดูของ 21:00-21:10 | ประมูล 21:10-21:40
-</p>
+<p>ดูของ 21:00-21:10 | ประมูล 21:10-21:40</p>
 
 </div>
 
 
 
 <div class="card">
-
 
 <h3>ลงชื่อประมูล</h3>
 
@@ -79,7 +72,6 @@ cursor:pointer
 </select>
 
 
-
 <select id="page">
 
 <option>หน้า 1</option>
@@ -93,7 +85,6 @@ cursor:pointer
 </select>
 
 
-
 <input id="piece" placeholder="ชิ้นที่">
 
 
@@ -102,10 +93,22 @@ cursor:pointer
 </button>
 
 
-<button onclick="removeBid()">
-ถอนชื่อ
+</div>
+
+
+
+<div class="card">
+
+<h3>รายการประมูลของฉัน</h3>
+
+<input id="myname" placeholder="ใส่ชื่อเพื่อดูรายการ">
+
+<button onclick="showMyList()">
+ดูรายการ
 </button>
 
+
+<div id="mylist"></div>
 
 </div>
 
@@ -114,7 +117,7 @@ cursor:pointer
 
 <div class="card">
 
-<h3>รายชื่อผู้ประมูล</h3>
+<h3>รายชื่อผู้ประมูลทั้งหมด</h3>
 
 <div id="list"></div>
 
