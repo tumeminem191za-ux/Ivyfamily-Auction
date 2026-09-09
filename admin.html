@@ -7,7 +7,6 @@
 
 <title>Ivyfamily Admin</title>
 
-
 <style>
 
 body{
@@ -17,19 +16,16 @@ color:white;
 padding:20px
 }
 
-
 .card{
 background:#222;
 padding:15px;
 border-radius:12px;
-margin:10px 0
+margin:12px 0
 }
 
-
-button{
+button,input{
 padding:10px;
-margin:5px;
-cursor:pointer
+margin:5px
 }
 
 </style>
@@ -43,36 +39,48 @@ cursor:pointer
 <h1>Ivyfamily Admin</h1>
 
 
-
 <div class="card">
 
-<h3>เลือกของที่จะหมุน</h3>
 
-<div id="list"></div>
+<h3>เข้าสู่ระบบ</h3>
+
+
+<input id="pass" placeholder="รหัสแอดมิน">
+
+
+<button onclick="login()">
+เข้า
+</button>
 
 
 </div>
 
 
 
+
+<div id="admin" style="display:none">
+
+
 <div class="card">
 
-<h3>ผลวงล้อ</h3>
+
+<h3>จัดการประมูล</h3>
+
+
+<button onclick="wheel()">
+หมุนวงล้อ
+</button>
+
+
+<button onclick="clearAll()">
+ล้างรายชื่อ
+</button>
 
 
 <h2 id="result"></h2>
 
 
 </div>
-
-
-
-
-<div class="card">
-
-<h3>ประวัติการหมุน</h3>
-
-<div id="history"></div>
 
 
 </div>
