@@ -1,161 +1,111 @@
 import { db } from "./firebase.js";
 
+
 import {
- collection,
- addDoc,
- onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+collection,
+
+addDoc,
+
+deleteDoc,
+
+doc,
+
+onSnapshot
+
+}
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 
 let data=[];
 
 
 
-// เช็กเวลาเปิดประมูล
 
 function auctionOpen(){
 
- let now=new Date();
 
- let time=now.getHours()*60+now.getMinutes();
-
- let start=21*60;
-
- let end=21*60+40;
+let now=new Date();
 
 
- return time>=start && time<=end;
-
-}
+let time=
+now.getHours()*60+
+now.getMinutes();
 
 
 
-// รอบประมูล
+return time>=1270 && time<=1300;
 
-function getAuctionWeek(){
-
- let now=new Date();
-
- let day=now.getDay();
-
- let diff=day===0?1:day+1;
-
-
- let saturday=new Date();
-
- saturday.setDate(now.getDate()-diff);
-
-
- return saturday.toLocaleDateString("th-TH");
 
 }
 
 
 
 
-// ลงชื่อ
 
 window.add=async function(){
 
 
+if(!auctionOpen()){
 
- if(!auctionOpen()){
+alert("เปิดรับ 21:10-21:40");
 
- alert("เปิดรับเฉพาะเวลา 21:00-21:40");
+return;
 
- return;
-
- }
-
-
-
- let name=
- document.getElementById("name").value;
+}
 
 
 
- let item=
- document.getElementById("item").value;
+let x={
 
 
+name:name.value,
 
- let page=
- document.getElementById("page").value;
+item:item.value,
 
+page:page.value,
 
+piece:piece.value,
 
- let piece=
- document.getElementById("piece").value;
-
-
-
- if(!name){
-
- alert("กรุณาใส่ชื่อ");
-
- return;
-
- }
+time:Date.now()
 
 
-
- // กันลงซ้ำของชิ้นเดิม
-
- let duplicate=data.some(x=>
-
- x.name==name &&
-
- x.item==item &&
-
- x.page==page &&
-
- x.piece==piece
-
- );
-
-
-
- if(duplicate){
-
- alert("คุณลงชื่อของชิ้นนี้แล้ว");
-
- return;
-
- }
+};
 
 
 
 
- let x={
+let same=data.find(a=>
 
+a.name==x.name &&
 
- name:name,
+a.item==x.item &&
 
- item:item,
+a.page==x.page &&
 
- page:page,
+a.piece==x.piece
 
- piece:piece,
-
- week:getAuctionWeek(),
-
- time:Date.now()
-
-
- };
+);
 
 
 
- await addDoc(collection(db,"bids"),x);
+if(same){
+
+alert("คุณลงของชิ้นนี้แล้ว");
+
+return;
+
+}
 
 
 
- alert("ลงชื่อเรียบร้อย");
+await addDoc(collection(db,"bids"),x);
 
 
- document.getElementById("name").value="";
 
- document.getElementById("piece").value="";
+alert("ลงชื่อแล้ว");
 
 
 };
@@ -165,31 +115,74 @@ window.add=async function(){
 
 
 
-// โหลดข้อมูลสด
+
+window.removeBid=async function(){
+
+
+
+let player=prompt("ใส่ชื่อผู้เล่น");
+
+
+let target=data.find(x=>
+
+x.name==player
+
+);
+
+
+
+if(!target){
+
+alert("ไม่พบชื่อ");
+
+return;
+
+}
+
+
+
+await deleteDoc(
+
+doc(db,"bids",target.id)
+
+);
+
+
+
+alert("ถอนชื่อแล้ว");
+
+
+};
+
+
+
+
+
+
 
 onSnapshot(collection(db,"bids"),(snap)=>{
 
 
- data=[];
+data=[];
 
 
- snap.forEach(doc=>{
+snap.forEach(doc=>{
 
 
- let x=doc.data();
+let x=doc.data();
+
+x.id=doc.id;
 
 
- if(x.week==getAuctionWeek()){
-
- data.push(x);
-
- }
+data.push(x);
 
 
- });
+
+});
 
 
- render();
+
+render();
 
 
 });
@@ -199,19 +192,18 @@ onSnapshot(collection(db,"bids"),(snap)=>{
 
 
 
-// แสดงรายชื่อ
-
 function render(){
 
 
- document.getElementById("list").innerHTML=
+
+list.innerHTML=data.map(x=>
 
 
- data.map(x=>
+`${x.name} | ${x.item} | ${x.page} | ชิ้น ${x.piece}`
 
- `${x.name} | ${x.item} | ${x.page} | ชิ้น ${x.piece}`
 
- ).join("<br>");
+).join("<br>");
+
 
 
 }
