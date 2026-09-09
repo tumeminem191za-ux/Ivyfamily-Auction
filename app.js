@@ -3,226 +3,73 @@ import { db } from "./firebase.js";
 import {
  collection,
  addDoc,
- deleteDoc,
- doc,
- onSnapshot
+ onSnapshot,
+ query,
+ orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
 let data=[];
 
 
-
-// เช็กสถานะเวลา
-
-function auctionStatus(){
-
- let now=new Date();
-
- let t=
- now.getHours()*60+
- now.getMinutes();
-
-
- // 21:00
- let open=21*60;
-
-
- // 21:10
- let lock=21*60+10;
-
-
- // 21:40
- let close=21*60+40;
-
-
-
- if(t<open){
-
-  return "ยังไม่เปิด";
-
- }
-
-
- if(t>=open && t<lock){
-
-  return "เปิดรับชื่อ";
-
- }
-
-
- if(t>=lock && t<close){
-
-  return "ล็อกชื่อแล้ว";
-
- }
-
-
- return "ปิดประมูล";
-
-}
-
-
-
-
-
-// แสดงสถานะเวลา
-
-function showStatus(){
-
-
-let box=document.getElementById("status");
-
-
-if(box){
-
-box.innerHTML=
-"สถานะ: "+auctionStatus();
-
-}
-
-
-}
-
-
-setInterval(showStatus,1000);
-
-showStatus();
-
-
-
-
-
-
 // ลงชื่อ
+window.add = async function(){
 
-window.add=async function(){
+let name=document.getElementById("name").value;
+let item=document.getElementById("item").value;
+let page=document.getElementById("page").value;
+let piece=document.getElementById("piece").value;
 
 
+// กันชื่อเดิม + ไอเทมเดิม
+let check=data.find(x =>
+x.name==name &&
+x.item==item
+);
 
-if(auctionStatus()!="เปิดรับชื่อ"){
 
-alert("ตอนนี้ไม่เปิดรับชื่อแล้ว");
+if(check){
+
+alert("ชื่อนี้ลงไอเทมนี้แล้ว");
 
 return;
 
 }
 
 
+await addDoc(collection(db,"bids"),{
 
-let x={
-
-
-name:name.value,
-
-item:item.value,
-
-page:page.value,
-
-piece:piece.value,
-
+name:name,
+item:item,
+page:page,
+piece:piece,
 time:Date.now()
 
-
-};
-
+});
 
 
-
-let same=data.find(a=>
-
-a.name==x.name &&
-
-a.item==x.item &&
-
-a.page==x.page &&
-
-a.piece==x.piece
-
-);
-
-
-
-if(same){
-
-alert("คุณลงของชิ้นนี้แล้ว");
-
-return;
+document.getElementById("name").value="";
+document.getElementById("piece").value="";
 
 }
 
 
 
-await addDoc(collection(db,"bids"),x);
+// realtime
 
-
-
-alert("ลงชื่อแล้ว");
-
-
-};
-
-
-
-
-
-
-
-// ถอนชื่อ
-
-window.removeBid=async function(id){
-
-
-
-if(auctionStatus()!="เปิดรับชื่อ"){
-
-alert("หมดเวลาถอนชื่อแล้ว");
-
-return;
-
-}
-
-
-
-await deleteDoc(
-
-doc(db,"bids",id)
-
-);
-
-
-alert("ถอนรายการแล้ว");
-
-
-};
-
-
-
-
-
-
-
-// โหลดข้อมูล
-
-onSnapshot(collection(db,"bids"),(snap)=>{
+onSnapshot(
+query(collection(db,"bids"),orderBy("time","asc")),
+(snapshot)=>{
 
 
 data=[];
 
 
-snap.forEach(doc=>{
+snapshot.forEach(doc=>{
 
-
-let x=doc.data();
-
-x.id=doc.id;
-
-
-data.push(x);
-
+data.push(doc.data());
 
 });
-
 
 
 render();
@@ -233,20 +80,87 @@ render();
 
 
 
-
-
+// แสดงรายชื่อ
 
 function render(){
 
 
-list.innerHTML=data.map(x=>
+document.getElementById("list").innerHTML=
+
+data.map(x=>
+
+`
+<div>
+${x.name}
+|
+${x.item}
+|
+${x.page}
+|
+ชิ้น ${x.piece}
+
+</div>
+
+`
+
+).join("");
+
+}
 
 
-`${x.name} | ${x.item} | ${x.page} | ชิ้น ${x.piece}`
 
 
-).join("<br>");
+// วงล้อ
 
+window.wheel=function(){
+
+
+let target=prompt(
+"ใส่ชื่อไอเทมที่จะหมุน"
+);
+
+
+
+let players=[
+
+...new Set(
+
+data
+.filter(x=>x.item==target)
+.map(x=>x.name)
+
+)
+
+];
+
+
+
+if(players.length<2){
+
+
+document.getElementById("result").innerHTML=
+
+"ไม่มีคนแย่ง";
+
+
+return;
+
+
+}
+
+
+
+let winner=
+
+players[
+Math.floor(Math.random()*players.length)
+];
+
+
+
+document.getElementById("result").innerHTML=
+
+"ผู้ได้สิทธิ์: "+winner;
 
 
 }
