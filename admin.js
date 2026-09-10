@@ -28,20 +28,26 @@ let spinning=false;
 
 window.login=function(){
 
+
 let pass=document.getElementById("pass").value;
 
 
 if(pass==="1234"){
 
+
 document.getElementById("admin").style.display="block";
 
+
 loadHistory();
+
 
 }
 
 else{
 
+
 alert("รหัสผิด");
+
 
 }
 
@@ -52,7 +58,8 @@ alert("รหัสผิด");
 
 
 
-// โหลดรายชื่อ realtime
+
+// โหลดข้อมูล
 
 onSnapshot(
 
@@ -92,7 +99,7 @@ id:d.id,
 
 
 
-// โหลดคนเข้าในวงล้อ
+// โหลดวงล้อ
 
 window.loadWheel=function(){
 
@@ -122,7 +129,9 @@ document.getElementById("players").innerHTML=
 players.map(x=>`
 
 <div class="player">
+
 👤 ${x}
+
 </div>
 
 `).join("");
@@ -154,7 +163,8 @@ let ctx=canvas.getContext("2d");
 let r=canvas.width/2;
 
 
-ctx.clearRect(0,0,400,400);
+
+ctx.clearRect(0,0,450,450);
 
 
 
@@ -186,7 +196,7 @@ let size=(Math.PI*2)/players.length;
 players.forEach((name,i)=>{
 
 
-let start=angle+(i*size);
+let start=angle+i*size;
 
 
 
@@ -197,7 +207,7 @@ ctx.moveTo(r,r);
 ctx.arc(
 r,
 r,
-r,
+r-5,
 start,
 start+size
 );
@@ -211,9 +221,9 @@ ctx.fill();
 
 
 
-ctx.lineWidth=3;
+ctx.strokeStyle="#fff";
 
-ctx.strokeStyle="#ffffff";
+ctx.lineWidth=3;
 
 ctx.stroke();
 
@@ -221,33 +231,30 @@ ctx.stroke();
 
 
 
-// ชื่อ
-
 ctx.save();
 
 
 ctx.translate(r,r);
 
-
 ctx.rotate(start+size/2);
 
 
-
-ctx.fillStyle="#ffffff";
+ctx.fillStyle="#fff";
 
 ctx.shadowColor="#000";
 
 ctx.shadowBlur=8;
 
 
-ctx.font="bold 16px sans-serif";
+ctx.font="bold 17px sans-serif";
 
 
 ctx.fillText(
 name,
-70,
+80,
 5
 );
+
 
 
 ctx.restore();
@@ -256,19 +263,20 @@ ctx.restore();
 ctx.shadowBlur=0;
 
 
+
 });
 
 
 
 
-// วงกลาง
+// กลางวง
 
 ctx.beginPath();
 
 ctx.arc(
 r,
 r,
-45,
+50,
 0,
 Math.PI*2
 );
@@ -279,9 +287,10 @@ ctx.fillStyle="#111";
 ctx.fill();
 
 
-ctx.fillStyle="#fff";
 
-ctx.font="bold 22px sans-serif";
+ctx.fillStyle="#ffd700";
+
+ctx.font="bold 25px sans-serif";
 
 ctx.textAlign="center";
 
@@ -294,15 +303,16 @@ r+8
 
 
 
-// ลูกศร
+
+// เข็ม
 
 ctx.beginPath();
 
-ctx.moveTo(r-18,5);
+ctx.moveTo(r-25,10);
 
-ctx.lineTo(r+18,5);
+ctx.lineTo(r+25,10);
 
-ctx.lineTo(r,35);
+ctx.lineTo(r,50);
 
 ctx.closePath();
 
@@ -321,7 +331,7 @@ ctx.fill();
 
 
 
-// หมุนวงล้อ
+// หมุน
 
 window.spin=function(){
 
@@ -338,6 +348,7 @@ return;
 }
 
 
+
 spinning=true;
 
 
@@ -345,35 +356,53 @@ spinning=true;
 let start=angle;
 
 
-let total=
+let rotation=
 
-Math.PI*2*8+
+Math.PI*2*10+
 
 Math.random()*Math.PI*2;
 
 
 
-let progress=0;
+let startTime=null;
+
+
+let duration=7000;
 
 
 
-function animate(){
+function animate(time){
 
 
 
-progress+=0.015;
+if(!startTime)
+
+startTime=time;
 
 
+
+let elapsed=time-startTime;
+
+
+
+let progress=
+
+Math.min(elapsed/duration,1);
+
+
+
+
+// easing
 
 let ease=
 
-1-Math.pow(1-progress,3);
+1-Math.pow(1-progress,4);
 
 
 
 angle=
 
-start+(total*ease);
+start+(rotation*ease);
 
 
 
@@ -390,12 +419,6 @@ requestAnimationFrame(animate);
 else{
 
 
-angle%=Math.PI*2;
-
-
-drawWheel();
-
-
 finishSpin();
 
 
@@ -406,11 +429,11 @@ finishSpin();
 
 
 
-animate();
+requestAnimationFrame(animate);
 
 
 
-}
+};
 
 
 
@@ -418,50 +441,39 @@ animate();
 
 
 
-// จบหมุน + บันทึก
+
+// จบการหมุน
 
 async function finishSpin(){
 
 
 
-let size=
-
-(Math.PI*2)/players.length;
+let size=(Math.PI*2)/players.length;
 
 
 
-let index=
-
-Math.floor(
+let index=Math.floor(
 
 ((Math.PI*2-angle)%(Math.PI*2))
-
 /
-
 size
 
 );
 
 
 
-let winner=
-
-players[index];
+let winner=players[index];
 
 
 
 let item=
-
 document.getElementById("wheelItem").value;
 
 
 
-let winData=
-
-data.find(x=>
+let winData=data.find(x=>
 
 x.item==item &&
-
 x.name==winner
 
 );
@@ -469,9 +481,35 @@ x.name==winner
 
 
 
+
+// แสดง Banner
+
+
+document.getElementById("winnerBox").style.display="block";
+
+
+document.getElementById("winnerName").innerHTML=
+
+"🏆 "+winner;
+
+
+
+document.getElementById("winnerItem").innerHTML=
+
+"📦 "+item+
+"<br>📄 "+winData?.page+
+" ชิ้น "+winData?.piece;
+
+
+
+
+
+
 document.getElementById("result").innerHTML=
 
-"🎉 ผู้ได้สิทธิ์: "+winner;
+"ผู้ชนะ: "+winner;
+
+
 
 
 
@@ -502,7 +540,9 @@ time:new Date().toLocaleString("th-TH")
 loadHistory();
 
 
+
 spinning=false;
+
 
 
 }
@@ -512,8 +552,22 @@ spinning=false;
 
 
 
+// ปิด Banner
 
-// โหลดประวัติ
+window.closeWinner=function(){
+
+document.getElementById("winnerBox").style.display="none";
+
+};
+
+
+
+
+
+
+
+
+// ประวัติ
 
 async function loadHistory(){
 
@@ -558,7 +612,7 @@ box.innerHTML+=`
 
 <br>
 
-📄 ${x.page}
+📄 หน้า ${x.page}
 
 ชิ้น ${x.piece}
 
