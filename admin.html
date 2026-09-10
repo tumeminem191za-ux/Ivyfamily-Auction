@@ -12,49 +12,130 @@
 
 body{
 font-family:sans-serif;
-background:#0d0d12;
+background:#0b0b12;
 color:white;
 padding:20px;
 }
 
 
 .card{
-background:#1c1c25;
+
+background:#1d1d27;
 padding:20px;
 border-radius:16px;
 margin:15px 0;
+
 }
 
 
 button,input,select{
+
 padding:10px;
 margin:5px;
-border-radius:8px;
+border-radius:10px;
 border:none;
+
 }
 
 
 button{
+
 background:#8b5cf6;
 color:white;
 cursor:pointer;
+
 }
 
 
 canvas{
-background:#111;
-border-radius:50%;
+
 display:block;
 margin:20px auto;
+background:#111;
+border-radius:50%;
+
 }
 
 
+
+
 .player{
+
 background:#292936;
 padding:8px;
 margin:5px;
 border-radius:8px;
+
 }
+
+
+
+
+
+/* Banner ผู้ชนะ */
+
+#winnerBox{
+
+
+display:none;
+
+position:fixed;
+
+top:50%;
+
+left:50%;
+
+transform:translate(-50%,-50%);
+
+
+background:#222;
+
+border:3px solid #ffd700;
+
+border-radius:20px;
+
+
+padding:35px;
+
+text-align:center;
+
+
+z-index:99;
+
+
+box-shadow:0 0 30px #ffd700;
+
+
+}
+
+
+
+#winnerBox h1{
+
+color:#ffd700;
+
+}
+
+
+
+#winnerName{
+
+font-size:35px;
+
+color:white;
+
+font-weight:bold;
+
+}
+
+
+
+.close{
+
+background:#ff595e;
+
+}
+
 
 
 </style>
@@ -63,12 +144,15 @@ border-radius:8px;
 </head>
 
 
+
 <body>
 
 
 <h1>
 🟣 Ivyfamily Admin
 </h1>
+
+
 
 
 
@@ -92,24 +176,38 @@ border-radius:8px;
 
 
 
+
 <div id="admin" style="display:none">
+
+
 
 
 
 <div class="card">
 
 
-<h2>🎡 Ivy Wheel</h2>
+<h2>
+🎡 Ivy Winner Wheel
+</h2>
 
 
 
 <select id="wheelItem">
 
-<option>หลวนเฟิงลั่วหยาง</option>
 
-<option>ญาณแท้เชี่ยวชาญชูโจว</option>
+<option>
+หลวนเฟิงลั่วหยาง
+</option>
 
-<option>ญาณแท้ชูโจว</option>
+
+<option>
+ญาณแท้เชี่ยวชาญชูโจว
+</option>
+
+
+<option>
+ญาณแท้ชูโจว
+</option>
 
 
 </select>
@@ -124,15 +222,17 @@ border-radius:8px;
 </button>
 
 
+
 <div id="players"></div>
 
 
 
-<canvas id="wheel" width="400" height="400"></canvas>
+<canvas id="wheel" width="450" height="450"></canvas>
+
 
 
 <button onclick="spin()">
-🎡 หมุนวงล้อ
+🎡 เริ่มหมุน
 </button>
 
 
@@ -147,10 +247,13 @@ border-radius:8px;
 
 
 
+
 <div class="card">
 
 
-<h2>📜 ประวัติผู้ได้สิทธิ์</h2>
+<h2>
+📜 ประวัติผู้ได้สิทธิ์
+</h2>
 
 
 <div id="history"></div>
@@ -164,8 +267,10 @@ border-radius:8px;
 <div class="card">
 
 
-<button onclick="clearAll()">
+<button onclick="clearAll">
+
 🗑 ล้างรายชื่อ
+
 </button>
 
 
@@ -174,13 +279,49 @@ border-radius:8px;
 
 
 
+
 </div>
+
+
+
+
+
+
+
+<!-- Banner -->
+
+<div id="winnerBox">
+
+
+<h1>
+🎉 ยินดีด้วย 🎉
+</h1>
+
+
+<div id="winnerName"></div>
+
+
+<p id="winnerItem"></p>
+
+
+<button class="close" onclick="closeWinner()">
+ปิด
+</button>
+
+
+</div>
+
+
+
+
 
 
 
 <script type="module" src="admin.js"></script>
 
 
+
 </body>
+
 
 </html>
