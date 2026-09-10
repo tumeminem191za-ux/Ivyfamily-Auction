@@ -20,33 +20,22 @@ let angle=0;
 
 let spinning=false;
 
-let winner="";
 
 
-
-
-// ======================
 // LOGIN
-// ======================
 
 window.login=function(){
 
-
-let pass=
-document.getElementById("pass").value;
+let pass=document.getElementById("pass").value;
 
 
 if(pass==="1234"){
 
-
 document.getElementById("admin").style.display="block";
-
 
 loadHistory();
 
-
 }
-
 else{
 
 alert("รหัสผิด");
@@ -58,11 +47,7 @@ alert("รหัสผิด");
 
 
 
-
-// ======================
-// LOAD BIDS
-// ======================
-
+// โหลดข้อมูล
 
 onSnapshot(
 
@@ -100,19 +85,13 @@ id:d.id,
 
 
 
-
-
-// ======================
-// โหลดวงล้อ
-// ======================
-
+// โหลดคนลงชื่อ
 
 window.loadWheel=function(){
 
 
 let item=
 document.getElementById("wheelItem").value;
-
 
 
 players=[
@@ -128,25 +107,16 @@ data
 ];
 
 
-
-let box=
-document.getElementById("players");
+document.getElementById("players").innerHTML=
 
 
-box.innerHTML=
+players.map(x=>`
 
-
-players.map(x=>
-
-
-`
 <div class="player">
 👤 ${x}
 </div>
 
-`
-
-).join("");
+`).join("");
 
 
 
@@ -160,26 +130,17 @@ drawWheel();
 
 
 
-
-// ======================
-// วาดวงล้อ
-// ======================
-
+// วาดวงล้อใหม่
 
 function drawWheel(){
 
 
-let canvas=
-document.getElementById("wheel");
+let canvas=document.getElementById("wheel");
 
-
-let ctx=
-canvas.getContext("2d");
-
+let ctx=canvas.getContext("2d");
 
 
 let r=canvas.width/2;
-
 
 
 ctx.clearRect(0,0,400,400);
@@ -190,23 +151,39 @@ if(players.length==0)return;
 
 
 
-let size=
-(2*Math.PI)/players.length;
+let colors=[
+
+"#ff595e",
+"#ffca3a",
+"#8ac926",
+"#1982c4",
+"#6a4c93",
+"#ff924c",
+"#00b4d8",
+"#f72585",
+"#43aa8b",
+"#577590"
+
+];
+
+
+
+let size=(Math.PI*2)/players.length;
 
 
 
 players.forEach((name,i)=>{
 
 
-let start=
-angle+i*size;
+let start=angle+i*size;
 
+
+
+// ช่องวงล้อ
 
 ctx.beginPath();
 
-
 ctx.moveTo(r,r);
-
 
 ctx.arc(
 r,
@@ -218,15 +195,24 @@ start+size
 
 
 ctx.fillStyle=
-
-i%2==0?
-"#8b5cf6":
-"#d8b4ff";
+colors[i%colors.length];
 
 
 ctx.fill();
 
 
+
+ctx.lineWidth=3;
+
+ctx.strokeStyle="#ffffff";
+
+ctx.stroke();
+
+
+
+
+
+// ชื่อ
 
 ctx.save();
 
@@ -237,23 +223,69 @@ ctx.translate(r,r);
 ctx.rotate(start+size/2);
 
 
-ctx.fillStyle="#000";
+
+ctx.fillStyle="#ffffff";
 
 
-ctx.font="16px sans-serif";
+ctx.shadowColor="#000";
+
+ctx.shadowBlur=6;
+
+
+ctx.font="bold 16px sans-serif";
 
 
 ctx.fillText(
 name,
-60,
+70,
 5
 );
+
 
 
 ctx.restore();
 
 
+ctx.shadowBlur=0;
+
+
+
 });
+
+
+
+
+// วงกลาง
+
+ctx.beginPath();
+
+ctx.arc(
+r,
+r,
+45,
+0,
+Math.PI*2
+);
+
+
+ctx.fillStyle="#111";
+
+ctx.fill();
+
+
+
+ctx.fillStyle="#ffffff";
+
+ctx.font="bold 20px sans-serif";
+
+ctx.textAlign="center";
+
+ctx.fillText(
+"IVY",
+r,
+r+7
+);
+
 
 
 }
@@ -263,10 +295,8 @@ ctx.restore();
 
 
 
-// ======================
-// หมุน
-// ======================
 
+// หมุน
 
 window.spin=function(){
 
@@ -288,8 +318,7 @@ spinning=true;
 
 
 
-let speed=
-Math.random()*0.3+0.25;
+let start=angle;
 
 
 let total=
@@ -298,24 +327,17 @@ Math.random()*Math.PI*2;
 
 
 
-let start=angle;
-
-
-
-let time=0;
+let t=0;
 
 
 
 function animate(){
 
 
-time+=0.02;
+t+=0.02;
 
 
-angle=
-start+
-total*
-(time);
+angle=start+(total*t);
 
 
 
@@ -323,7 +345,7 @@ drawWheel();
 
 
 
-if(time<1){
+if(t<1){
 
 requestAnimationFrame(animate);
 
@@ -332,8 +354,7 @@ requestAnimationFrame(animate);
 else{
 
 
-angle=
-angle%(Math.PI*2);
+angle%=Math.PI*2;
 
 
 drawWheel();
@@ -360,37 +381,26 @@ animate();
 
 
 
-// ======================
 // จบการหมุน
-// ======================
-
 
 async function finishSpin(){
 
 
 
-let index=
+let size=(Math.PI*2)/players.length;
 
-Math.floor(
 
-(
-2*Math.PI-angle
-)
+let index=Math.floor(
 
+((Math.PI*2-angle)%(Math.PI*2))
 /
+size
 
-(
-2*Math.PI/players.length
-)
-
-)
-
-%players.length;
+);
 
 
 
-winner=
-players[index];
+let winner=players[index];
 
 
 
@@ -399,8 +409,7 @@ document.getElementById("wheelItem").value;
 
 
 
-let winData=
-data.find(x=>
+let winData=data.find(x=>
 
 x.item==item &&
 x.name==winner
@@ -410,9 +419,12 @@ x.name==winner
 
 
 
+
 document.getElementById("result").innerHTML=
 
 "🎉 ผู้ได้สิทธิ์: "+winner;
+
+
 
 
 
@@ -442,7 +454,6 @@ time:new Date().toLocaleString("th-TH")
 loadHistory();
 
 
-
 spinning=false;
 
 
@@ -453,33 +464,22 @@ spinning=false;
 
 
 
-// ======================
-// ประวัติ
-// ======================
 
+// ประวัติ
 
 async function loadHistory(){
 
 
-let box=
-document.getElementById("history");
+let box=document.getElementById("history");
 
 
 if(!box)return;
 
 
 
-let snap=
+let snap=await getDocs(
 
-await getDocs(
-
-query(
-
-collection(db,"history"),
-
-orderBy("time","desc")
-
-)
+collection(db,"history")
 
 );
 
@@ -495,9 +495,8 @@ snap.forEach(d=>{
 let x=d.data();
 
 
-box.innerHTML+=
 
-`
+box.innerHTML+=`
 
 <div class="player">
 
@@ -533,10 +532,7 @@ box.innerHTML+=
 
 
 
-// ======================
 // ล้างรายชื่อ
-// ======================
-
 
 window.clearAll=async function(){
 
@@ -546,12 +542,7 @@ if(!confirm("ล้างรายชื่อทั้งหมด?"))return;
 
 
 let snap=
-
-await getDocs(
-
-collection(db,"bids")
-
-);
+await getDocs(collection(db,"bids"));
 
 
 
