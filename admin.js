@@ -677,31 +677,53 @@ box.innerHTML+=`
 
 window.clearAll=async function(){
 
-
-if(!confirm("ล้างรายชื่อทั้งหมด?"))
-
+if(!confirm("ล้างรายชื่อผู้ประมูลทั้งหมด?"))
 return;
 
 
+try{
 
-let snap=
 
+let snap =
 await getDocs(
-
 collection(db,"bids")
-
 );
 
 
 
-for(let x of snap.docs){
+let count=0;
+
+
+for(const x of snap.docs){
 
 
 await deleteDoc(
-
 doc(db,"bids",x.id)
-
 );
+
+
+count++;
+
+
+}
+
+
+
+alert("ล้างแล้วทั้งหมด "+count+" รายการ");
+
+
+}
+
+catch(e){
+
+console.log(e);
+
+alert("ล้างไม่สำเร็จ");
+
+}
+
+
+};
 
 
 }
