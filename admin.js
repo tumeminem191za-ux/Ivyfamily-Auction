@@ -22,6 +22,8 @@ let spinning=false;
 
 
 
+
+
 // LOGIN
 
 window.login=function(){
@@ -36,6 +38,7 @@ document.getElementById("admin").style.display="block";
 loadHistory();
 
 }
+
 else{
 
 alert("รหัสผิด");
@@ -47,7 +50,9 @@ alert("รหัสผิด");
 
 
 
-// โหลดข้อมูล
+
+
+// โหลดรายชื่อ realtime
 
 onSnapshot(
 
@@ -85,13 +90,16 @@ id:d.id,
 
 
 
-// โหลดคนลงชื่อ
+
+
+// โหลดคนเข้าในวงล้อ
 
 window.loadWheel=function(){
 
 
 let item=
 document.getElementById("wheelItem").value;
+
 
 
 players=[
@@ -105,6 +113,7 @@ data
 )
 
 ];
+
 
 
 document.getElementById("players").innerHTML=
@@ -130,7 +139,9 @@ drawWheel();
 
 
 
-// วาดวงล้อใหม่
+
+
+// วาดวงล้อ
 
 function drawWheel(){
 
@@ -175,11 +186,9 @@ let size=(Math.PI*2)/players.length;
 players.forEach((name,i)=>{
 
 
-let start=angle+i*size;
+let start=angle+(i*size);
 
 
-
-// ช่องวงล้อ
 
 ctx.beginPath();
 
@@ -226,10 +235,9 @@ ctx.rotate(start+size/2);
 
 ctx.fillStyle="#ffffff";
 
-
 ctx.shadowColor="#000";
 
-ctx.shadowBlur=6;
+ctx.shadowBlur=8;
 
 
 ctx.font="bold 16px sans-serif";
@@ -242,12 +250,10 @@ name,
 );
 
 
-
 ctx.restore();
 
 
 ctx.shadowBlur=0;
-
 
 
 });
@@ -273,18 +279,37 @@ ctx.fillStyle="#111";
 ctx.fill();
 
 
+ctx.fillStyle="#fff";
 
-ctx.fillStyle="#ffffff";
-
-ctx.font="bold 20px sans-serif";
+ctx.font="bold 22px sans-serif";
 
 ctx.textAlign="center";
+
 
 ctx.fillText(
 "IVY",
 r,
-r+7
+r+8
 );
+
+
+
+// ลูกศร
+
+ctx.beginPath();
+
+ctx.moveTo(r-18,5);
+
+ctx.lineTo(r+18,5);
+
+ctx.lineTo(r,35);
+
+ctx.closePath();
+
+
+ctx.fillStyle="#ffd700";
+
+ctx.fill();
 
 
 
@@ -296,7 +321,7 @@ r+7
 
 
 
-// หมุน
+// หมุนวงล้อ
 
 window.spin=function(){
 
@@ -313,7 +338,6 @@ return;
 }
 
 
-
 spinning=true;
 
 
@@ -322,22 +346,34 @@ let start=angle;
 
 
 let total=
+
 Math.PI*2*8+
+
 Math.random()*Math.PI*2;
 
 
 
-let t=0;
+let progress=0;
 
 
 
 function animate(){
 
 
-t+=0.02;
+
+progress+=0.015;
 
 
-angle=start+(total*t);
+
+let ease=
+
+1-Math.pow(1-progress,3);
+
+
+
+angle=
+
+start+(total*ease);
 
 
 
@@ -345,7 +381,7 @@ drawWheel();
 
 
 
-if(t<1){
+if(progress<1){
 
 requestAnimationFrame(animate);
 
@@ -373,7 +409,8 @@ finishSpin();
 animate();
 
 
-};
+
+}
 
 
 
@@ -381,37 +418,50 @@ animate();
 
 
 
-// จบการหมุน
+// จบหมุน + บันทึก
 
 async function finishSpin(){
 
 
 
-let size=(Math.PI*2)/players.length;
+let size=
+
+(Math.PI*2)/players.length;
 
 
-let index=Math.floor(
+
+let index=
+
+Math.floor(
 
 ((Math.PI*2-angle)%(Math.PI*2))
+
 /
+
 size
 
 );
 
 
 
-let winner=players[index];
+let winner=
+
+players[index];
 
 
 
 let item=
+
 document.getElementById("wheelItem").value;
 
 
 
-let winData=data.find(x=>
+let winData=
+
+data.find(x=>
 
 x.item==item &&
+
 x.name==winner
 
 );
@@ -419,11 +469,9 @@ x.name==winner
 
 
 
-
 document.getElementById("result").innerHTML=
 
 "🎉 ผู้ได้สิทธิ์: "+winner;
-
 
 
 
@@ -465,7 +513,7 @@ spinning=false;
 
 
 
-// ประวัติ
+// โหลดประวัติ
 
 async function loadHistory(){
 
@@ -477,7 +525,9 @@ if(!box)return;
 
 
 
-let snap=await getDocs(
+let snap=
+
+await getDocs(
 
 collection(db,"history")
 
@@ -521,6 +571,7 @@ box.innerHTML+=`
 `;
 
 
+
 });
 
 
@@ -537,12 +588,19 @@ box.innerHTML+=`
 window.clearAll=async function(){
 
 
-if(!confirm("ล้างรายชื่อทั้งหมด?"))return;
+if(!confirm("ล้างรายชื่อทั้งหมด?"))
+
+return;
 
 
 
 let snap=
-await getDocs(collection(db,"bids"));
+
+await getDocs(
+
+collection(db,"bids")
+
+);
 
 
 
