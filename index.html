@@ -7,58 +7,153 @@
 
 <title>Ivyfamily.Auction</title>
 
+
 <style>
 
 body{
+
 font-family:sans-serif;
-background:#101010;
+
+background:#0d0d12;
+
 color:white;
-padding:20px
+
+padding:20px;
+
 }
+
+
+h1{
+
+text-align:center;
+
+color:#d8b4ff;
+
+}
+
 
 .card{
-background:#222;
-padding:15px;
-border-radius:12px;
-margin:12px 0
+
+background:#1c1c25;
+
+padding:20px;
+
+border-radius:16px;
+
+margin:15px 0;
+
+box-shadow:0 0 10px #000;
+
 }
+
+
+.status{
+
+text-align:center;
+
+font-size:20px;
+
+padding:10px;
+
+border-radius:10px;
+
+background:#292940;
+
+}
+
 
 input,select,button{
-padding:8px;
-margin:4px
+
+padding:10px;
+
+margin:5px;
+
+border-radius:8px;
+
+border:none;
+
 }
 
+
 button{
-cursor:pointer
+
+background:#8b5cf6;
+
+color:white;
+
+cursor:pointer;
+
 }
+
+
+button:hover{
+
+opacity:.8;
+
+}
+
+
+.item{
+
+background:#292936;
+
+padding:12px;
+
+margin:8px 0;
+
+border-radius:10px;
+
+}
+
 
 </style>
 
+
 </head>
+
 
 
 <body>
 
 
-<h1>Ivyfamily.Auction</h1>
+
+<h1>
+🟣 Ivyfamily.Auction
+</h1>
 
 
 <div class="card">
 
-<h3 id="status"></h3>
 
-<p>
-ดูของ 21:00-21:10 |
-ประมูล 21:10-21:40
+<div id="status" class="status">
+
+สถานะกำลังโหลด...
+
+</div>
+
+
+<p style="text-align:center">
+
+ดูของ 21:00 - 21:10
+
+<br>
+
+ประมูล 21:10 - 21:40
+
 </p>
+
 
 </div>
 
 
 
+
+
 <div class="card">
 
-<h3>ลงชื่อประมูล</h3>
+
+<h2>📝 ลงชื่อประมูล</h2>
+
 
 
 <input id="name" placeholder="ชื่อผู้เล่น">
@@ -75,14 +170,21 @@ cursor:pointer
 </select>
 
 
+
 <select id="page">
 
 <option>หน้า 1</option>
+
 <option>หน้า 2</option>
+
 <option>หน้า 3</option>
+
 <option>หน้า 4</option>
+
 <option>หน้า 5</option>
+
 <option>หน้า 6</option>
+
 <option>หน้า 7</option>
 
 </select>
@@ -91,8 +193,13 @@ cursor:pointer
 <input id="piece" placeholder="ชิ้นที่">
 
 
+<br>
+
+
 <button onclick="add()">
-ส่งชื่อ
+
+ส่งชื่อเข้าประมูล
+
 </button>
 
 
@@ -101,16 +208,20 @@ cursor:pointer
 
 
 
+
 <div class="card">
 
-<h3>รายการประมูลของฉัน</h3>
+
+<h2>🔎 ดูรายการของฉัน</h2>
 
 
-<input id="myname" placeholder="ใส่ชื่อ">
+<input id="myname" placeholder="ชื่อผู้เล่น">
 
 
 <button onclick="showMyList()">
-ดูรายการ
+
+ค้นหา
+
 </button>
 
 
@@ -122,33 +233,19 @@ cursor:pointer
 
 
 
+
+
 <div class="card">
 
-<h3>รายชื่อทั้งหมด</h3>
+
+<h2>
+
+📋 รายชื่อผู้ประมูลทั้งหมด
+
+</h2>
+
 
 <div id="list"></div>
-
-</div>
-
-
-
-
-<div class="card">
-
-<h3>Admin</h3>
-
-
-<button onclick="wheel()">
-หมุนวงล้อ
-</button>
-
-
-<button onclick="clearAll()">
-ล้างรายชื่อ
-</button>
-
-
-<h2 id="result"></h2>
 
 
 </div>
@@ -157,6 +254,7 @@ cursor:pointer
 
 
 <script type="module" src="app.js"></script>
+
 
 
 </body>
