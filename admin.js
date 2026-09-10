@@ -444,8 +444,7 @@ requestAnimationFrame(animate);
 else{
 
 
-angle=targetAngle;
-
+angle=targetAngle % (Math.PI*2);
 
 drawWheel();
 
