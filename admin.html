@@ -11,52 +11,51 @@
 <style>
 
 body{
-
 font-family:sans-serif;
-background:#101010;
+background:#0d0d12;
 color:white;
 padding:20px;
-
 }
 
 
 .card{
-
-background:#222;
+background:#1c1c25;
 padding:20px;
-border-radius:15px;
+border-radius:16px;
 margin:15px 0;
-
 }
 
 
 button,input,select{
-
 padding:10px;
 margin:5px;
 border-radius:8px;
 border:none;
-
 }
 
 
 button{
-
 background:#8b5cf6;
 color:white;
 cursor:pointer;
-
 }
 
 
-.item{
-
-background:#333;
-padding:10px;
-border-radius:10px;
-margin:8px 0;
-
+canvas{
+background:#111;
+border-radius:50%;
+display:block;
+margin:20px auto;
 }
+
+
+.player{
+background:#292936;
+padding:8px;
+margin:5px;
+border-radius:8px;
+}
+
 
 </style>
 
@@ -97,81 +96,48 @@ margin:8px 0;
 
 
 
-
-
 <div class="card">
 
 
-<h2>
-📊 ข้อมูลประมูล
-</h2>
-
-
-<p>
-รายการทั้งหมด:
-<span id="count">0</span>
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-<div class="card">
-
-
-<h2>
-🎡 วงล้อประมูล
-</h2>
+<h2>🎡 Ivy Wheel</h2>
 
 
 
 <select id="wheelItem">
 
-<option>
-เลือกไอเทม
-</option>
+<option>หลวนเฟิงลั่วหยาง</option>
 
-<option>
-หลวนเฟิงลั่วหยาง
-</option>
+<option>ญาณแท้เชี่ยวชาญชูโจว</option>
 
-<option>
-ญาณแท้เชี่ยวชาญชูโจว
-</option>
-
-<option>
-ญาณแท้ชูโจว
-</option>
+<option>ญาณแท้ชูโจว</option>
 
 
 </select>
 
 
+
 <br>
 
 
-<button onclick="showWheelList()">
-ดูรายชื่อผู้แย่ง
+<button onclick="loadWheel()">
+โหลดรายชื่อ
 </button>
 
 
-
-<div id="wheelList"></div>
-
+<div id="players"></div>
 
 
-<button onclick="wheel()">
-หมุนวงล้อ
+
+<canvas id="wheel" width="400" height="400"></canvas>
+
+
+<button onclick="spin()">
+🎡 หมุนวงล้อ
 </button>
+
 
 
 <h2 id="result"></h2>
-
 
 
 </div>
@@ -181,23 +147,26 @@ margin:8px 0;
 
 
 
+<div class="card">
+
+
+<h2>📜 ประวัติผู้ได้สิทธิ์</h2>
+
+
+<div id="history"></div>
+
+
+</div>
+
+
 
 
 <div class="card">
 
 
-<h2>
-🗑 จัดการระบบ
-</h2>
-
-
-
 <button onclick="clearAll()">
-
-ล้างรายชื่อทั้งหมด
-
+🗑 ล้างรายชื่อ
 </button>
-
 
 
 </div>
