@@ -1,23 +1,28 @@
 import { db } from "./firebase.js";
 
-
 import {
-
-collection,
-onSnapshot,
-query,
-orderBy,
-getDocs,
-deleteDoc,
-doc
-
-}
-
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+ collection,
+ onSnapshot,
+ query,
+ orderBy,
+ addDoc,
+ getDocs,
+ deleteDoc,
+ doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
 let data=[];
+
+let players=[];
+
+let angle=0;
+
+let spinning=false;
+
+let winner="";
+
+
 
 
 // ======================
@@ -31,34 +36,31 @@ let pass=
 document.getElementById("pass").value;
 
 
-
 if(pass==="1234"){
 
 
 document.getElementById("admin").style.display="block";
 
 
-alert("เข้าสู่ระบบสำเร็จ");
+loadHistory();
 
 
 }
 
 else{
 
-
 alert("รหัสผิด");
 
-
 }
-
 
 };
 
 
 
 
+
 // ======================
-// REALTIME
+// LOAD BIDS
 // ======================
 
 
@@ -90,19 +92,6 @@ id:d.id,
 });
 
 
-
-let count=
-document.getElementById("count");
-
-
-if(count){
-
-count.innerHTML=data.length;
-
-}
-
-
-
 }
 
 );
@@ -112,12 +101,13 @@ count.innerHTML=data.length;
 
 
 
+
 // ======================
-// แสดงคนแย่ง
+// โหลดวงล้อ
 // ======================
 
 
-window.showWheelList=function(){
+window.loadWheel=function(){
 
 
 let item=
@@ -125,45 +115,22 @@ document.getElementById("wheelItem").value;
 
 
 
-let players=[
-
+players=[
 
 ...new Set(
 
-
 data
-
 .filter(x=>x.item==item)
-
 .map(x=>x.name)
 
-
 )
-
 
 ];
 
 
 
-
 let box=
-document.getElementById("wheelList");
-
-
-
-if(players.length==0){
-
-
-box.innerHTML=
-"ไม่มีคนลงชื่อ";
-
-
-return;
-
-
-}
-
-
+document.getElementById("players");
 
 
 box.innerHTML=
@@ -171,12 +138,10 @@ box.innerHTML=
 
 players.map(x=>
 
+
 `
-
-<div class="item">
-
+<div class="player">
 👤 ${x}
-
 </div>
 
 `
@@ -185,6 +150,9 @@ players.map(x=>
 
 
 
+drawWheel();
+
+
 };
 
 
@@ -194,45 +162,98 @@ players.map(x=>
 
 
 // ======================
-// หมุนวงล้อ
+// วาดวงล้อ
 // ======================
 
 
-window.wheel=function(){
+function drawWheel(){
 
 
-let item=
-document.getElementById("wheelItem").value;
+let canvas=
+document.getElementById("wheel");
 
 
-
-let players=[
-
-
-...new Set(
-
-data
-
-.filter(x=>x.item==item)
-
-.map(x=>x.name)
-
-)
-
-
-];
+let ctx=
+canvas.getContext("2d");
 
 
 
-
-if(players.length<2){
-
-
-document.getElementById("result").innerHTML=
-"ไม่มีคนแย่ง";
+let r=canvas.width/2;
 
 
-return;
+
+ctx.clearRect(0,0,400,400);
+
+
+
+if(players.length==0)return;
+
+
+
+let size=
+(2*Math.PI)/players.length;
+
+
+
+players.forEach((name,i)=>{
+
+
+let start=
+angle+i*size;
+
+
+ctx.beginPath();
+
+
+ctx.moveTo(r,r);
+
+
+ctx.arc(
+r,
+r,
+r,
+start,
+start+size
+);
+
+
+ctx.fillStyle=
+
+i%2==0?
+"#8b5cf6":
+"#d8b4ff";
+
+
+ctx.fill();
+
+
+
+ctx.save();
+
+
+ctx.translate(r,r);
+
+
+ctx.rotate(start+size/2);
+
+
+ctx.fillStyle="#000";
+
+
+ctx.font="16px sans-serif";
+
+
+ctx.fillText(
+name,
+60,
+5
+);
+
+
+ctx.restore();
+
+
+});
 
 
 }
@@ -240,28 +261,271 @@ return;
 
 
 
-let winner=
 
 
-players[
+// ======================
+// หมุน
+// ======================
+
+
+window.spin=function(){
+
+
+if(spinning)return;
+
+
+if(players.length<2){
+
+alert("ต้องมีคนแย่งอย่างน้อย 2 คน");
+
+return;
+
+}
+
+
+
+spinning=true;
+
+
+
+let speed=
+Math.random()*0.3+0.25;
+
+
+let total=
+Math.PI*2*8+
+Math.random()*Math.PI*2;
+
+
+
+let start=angle;
+
+
+
+let time=0;
+
+
+
+function animate(){
+
+
+time+=0.02;
+
+
+angle=
+start+
+total*
+(time);
+
+
+
+drawWheel();
+
+
+
+if(time<1){
+
+requestAnimationFrame(animate);
+
+}
+
+else{
+
+
+angle=
+angle%(Math.PI*2);
+
+
+drawWheel();
+
+
+finishSpin();
+
+
+}
+
+
+}
+
+
+
+animate();
+
+
+};
+
+
+
+
+
+
+
+// ======================
+// จบการหมุน
+// ======================
+
+
+async function finishSpin(){
+
+
+
+let index=
 
 Math.floor(
-Math.random()*players.length
+
+(
+2*Math.PI-angle
 )
 
-];
+/
+
+(
+2*Math.PI/players.length
+)
+
+)
+
+%players.length;
+
+
+
+winner=
+players[index];
+
+
+
+let item=
+document.getElementById("wheelItem").value;
+
+
+
+let winData=
+data.find(x=>
+
+x.item==item &&
+x.name==winner
+
+);
 
 
 
 
 document.getElementById("result").innerHTML=
 
-
 "🎉 ผู้ได้สิทธิ์: "+winner;
 
 
 
-};
+
+await addDoc(
+
+collection(db,"history"),
+
+{
+
+item:item,
+
+winner:winner,
+
+page:winData?.page || "",
+
+piece:winData?.piece || "",
+
+time:new Date().toLocaleString("th-TH")
+
+}
+
+);
+
+
+
+loadHistory();
+
+
+
+spinning=false;
+
+
+}
+
+
+
+
+
+
+// ======================
+// ประวัติ
+// ======================
+
+
+async function loadHistory(){
+
+
+let box=
+document.getElementById("history");
+
+
+if(!box)return;
+
+
+
+let snap=
+
+await getDocs(
+
+query(
+
+collection(db,"history"),
+
+orderBy("time","desc")
+
+)
+
+);
+
+
+
+box.innerHTML="";
+
+
+
+snap.forEach(d=>{
+
+
+let x=d.data();
+
+
+box.innerHTML+=
+
+`
+
+<div class="player">
+
+📦 ${x.item}
+
+<br>
+
+🏆 ${x.winner}
+
+<br>
+
+📄 ${x.page}
+
+ชิ้น ${x.piece}
+
+<br>
+
+⏰ ${x.time}
+
+</div>
+
+`;
+
+
+});
+
+
+}
 
 
 
@@ -277,27 +541,26 @@ document.getElementById("result").innerHTML=
 window.clearAll=async function(){
 
 
-
-let ok=
-confirm("ต้องการล้างรายชื่อทั้งหมดไหม");
-
-
-
-if(!ok)return;
+if(!confirm("ล้างรายชื่อทั้งหมด?"))return;
 
 
 
 let snap=
-await getDocs(collection(db,"bids"));
+
+await getDocs(
+
+collection(db,"bids")
+
+);
 
 
 
-for(let d of snap.docs){
+for(let x of snap.docs){
 
 
 await deleteDoc(
 
-doc(db,"bids",d.id)
+doc(db,"bids",x.id)
 
 );
 
@@ -306,7 +569,7 @@ doc(db,"bids",d.id)
 
 
 
-alert("ล้างรายชื่อแล้ว");
+alert("ล้างแล้ว");
 
 
 };
