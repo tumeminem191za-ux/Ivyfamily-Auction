@@ -359,14 +359,11 @@ let size =
 let targetAngle =
 
 (
-Math.PI*2
+-(winnerIndex * size)
 -
-(
-winnerIndex*size
+(size / 2)
 +
-size/2
-)
-
+(Math.PI / 2)
 );
 
 
