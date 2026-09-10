@@ -309,3 +309,410 @@ ctx.fill();
 
 
 }
+// ================= SPIN FAIR SYSTEM =================
+
+
+window.spin=function(){
+
+
+if(spinning)return;
+
+
+if(players.length<2){
+
+alert("ต้องมีคนแย่งอย่างน้อย 2 คน");
+
+return;
+
+}
+
+
+spinning=true;
+
+
+
+// สุ่มผู้ชนะก่อน
+
+selectedWinner =
+players[
+Math.floor(
+Math.random()*players.length
+)
+];
+
+
+
+// หา index ของผู้ชนะ
+
+let winnerIndex =
+players.indexOf(selectedWinner);
+
+
+
+let size =
+(Math.PI*2)/players.length;
+
+
+
+// ตำแหน่งเป้าหมาย
+
+let targetAngle =
+
+(
+Math.PI*2
+-
+(
+winnerIndex*size
++
+size/2
+)
+
+);
+
+
+
+// เพิ่มรอบหมุน
+
+let startAngle=angle;
+
+
+let totalRotation =
+
+(Math.PI*2*8)
+
++
+
+(
+targetAngle-angle%(Math.PI*2)
+);
+
+
+
+
+
+let startTime=null;
+
+let duration=7000;
+
+
+
+function animate(time){
+
+
+if(!startTime)
+
+startTime=time;
+
+
+
+let progress=
+
+(time-startTime)/duration;
+
+
+
+if(progress>1)
+
+progress=1;
+
+
+
+
+// easing ช้าลง
+
+let ease=
+
+1-Math.pow(1-progress,5);
+
+
+
+angle=
+
+startAngle+
+
+(totalRotation*ease);
+
+
+
+drawWheel();
+
+
+
+if(progress<1){
+
+requestAnimationFrame(animate);
+
+}
+
+else{
+
+
+angle=targetAngle;
+
+
+drawWheel();
+
+
+finishSpin();
+
+
+}
+
+
+}
+
+
+
+requestAnimationFrame(animate);
+
+
+
+};
+
+
+
+
+
+
+
+// ================= FINISH =================
+
+
+async function finishSpin(){
+
+
+
+let winner=selectedWinner;
+
+
+
+let item=
+
+document.getElementById("wheelItem").value;
+
+
+
+let winData=
+
+data.find(x=>
+
+x.item===item &&
+
+x.name===winner
+
+);
+
+
+
+
+// Banner
+
+
+document.getElementById("winnerBox").style.display="block";
+
+
+
+document.getElementById("winnerName").innerHTML=
+
+"🏆 "+winner;
+
+
+
+document.getElementById("winnerItem").innerHTML=
+
+`
+
+📦 ${item}
+
+<br>
+
+📄 หน้า ${winData?.page || "-"}
+
+ชิ้น ${winData?.piece || "-"}
+
+`;
+
+
+
+
+
+document.getElementById("result").innerHTML=
+
+"🎉 ผู้ได้สิทธิ์: "+winner;
+
+
+
+
+
+
+
+// บันทึกประวัติ
+
+
+await addDoc(
+
+collection(db,"history"),
+
+{
+
+item:item,
+
+winner:winner,
+
+page:winData?.page || "",
+
+piece:winData?.piece || "",
+
+time:new Date().toLocaleString("th-TH")
+
+}
+
+);
+
+
+
+loadHistory();
+
+
+spinning=false;
+
+
+}
+
+
+
+
+
+
+
+
+// ================= CLOSE BANNER =================
+
+
+window.closeWinner=function(){
+
+
+document.getElementById("winnerBox").style.display="none";
+
+
+};
+
+
+
+
+
+
+
+
+// ================= HISTORY =================
+
+
+async function loadHistory(){
+
+
+let box=
+
+document.getElementById("history");
+
+
+if(!box)return;
+
+
+
+let snap=
+
+await getDocs(
+
+collection(db,"history")
+
+);
+
+
+
+box.innerHTML="";
+
+
+
+snap.forEach(d=>{
+
+
+let x=d.data();
+
+
+
+box.innerHTML+=`
+
+<div class="player">
+
+📦 ${x.item}
+
+<br>
+
+🏆 ${x.winner}
+
+<br>
+
+📄 หน้า ${x.page}
+
+ชิ้น ${x.piece}
+
+<br>
+
+⏰ ${x.time}
+
+</div>
+
+`;
+
+});
+
+
+}
+
+
+
+
+
+
+
+
+// ================= CLEAR =================
+
+
+window.clearAll=async function(){
+
+
+if(!confirm("ล้างรายชื่อทั้งหมด?"))
+
+return;
+
+
+
+let snap=
+
+await getDocs(
+
+collection(db,"bids")
+
+);
+
+
+
+for(let x of snap.docs){
+
+
+await deleteDoc(
+
+doc(db,"bids",x.id)
+
+);
+
+
+}
+
+
+
+alert("ล้างรายชื่อแล้ว");
+
+
+};
