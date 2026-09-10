@@ -13,41 +13,60 @@ let data=[];
 
 
 // =======================
-// สถานะเวลา
+// เช็กเวลาไทย
+// =======================
+
+function getThaiTime(){
+
+return new Date(
+new Date().toLocaleString("en-US",
+{
+timeZone:"Asia/Bangkok"
+})
+);
+
+}
+
+
+
+// =======================
+// สถานะ
 // =======================
 
 function status(){
 
-let now=new Date();
+let now=getThaiTime();
 
-let time =
+let t=
 now.getHours()*60+
 now.getMinutes();
 
 
+
 let box=document.getElementById("status");
 
+if(!box)return;
 
-if(!box) return;
 
 
-if(time>=1260 && time<1270){
+if(t>=1260 && t<1270){
 
-box.innerHTML="สถานะ: เปิดรับชื่อ";
+box.innerHTML="🟢 เปิดรับชื่อ";
 
 }
 
-else if(time>=1270 && time<1300){
+else if(t>=1270 && t<1300){
 
-box.innerHTML="สถานะ: กำลังประมูล";
+box.innerHTML="🟡 กำลังประมูล";
 
 }
 
 else{
 
-box.innerHTML="สถานะ: ปิด";
+box.innerHTML="🔴 ปิดรอบ";
 
 }
+
 
 }
 
@@ -59,32 +78,92 @@ status();
 
 
 
+// =======================
+// หาอาทิตย์
+// =======================
+
+function getWeek(){
+
+let now=getThaiTime();
+
+let day=now.getDay();
+
+let diff=now.getDate()-day;
+
+
+let sunday=new Date(now.setDate(diff));
+
+
+return sunday.toLocaleDateString("th-TH");
+
+}
+
+
+
+
 
 // =======================
-// ลงชื่อประมูล
+// ส่งชื่อ
 // =======================
 
 window.add=async function(){
 
 
-let name=
-document.getElementById("name").value;
+
+let now=getThaiTime();
 
 
-let item=
-document.getElementById("item").value;
-
-
-let page=
-document.getElementById("page").value;
-
-
-let piece=
-document.getElementById("piece").value;
+let minute=
+now.getHours()*60+
+now.getMinutes();
 
 
 
-if(name==""){
+if(minute<1260 || minute>=1270){
+
+alert("หมดเวลาลงชื่อแล้ว");
+
+return;
+
+}
+
+
+
+
+
+let x={
+
+
+name:document.getElementById("name").value,
+
+item:document.getElementById("item").value,
+
+page:document.getElementById("page").value,
+
+piece:document.getElementById("piece").value,
+
+
+week:getWeek(),
+
+
+// เวลาจริงที่ลง
+
+time:Date.now(),
+
+
+registerTime:
+
+now.toLocaleTimeString("th-TH")
+
+
+
+};
+
+
+
+
+
+if(x.name==""){
 
 alert("กรุณาใส่ชื่อ");
 
@@ -94,22 +173,24 @@ return;
 
 
 
-// กันชื่อ + ไอเทม + หน้า + ชิ้น ซ้ำ
 
-let check=data.find(x=>
+let same=data.find(a=>
 
-x.name==name &&
-x.item==item &&
-x.page==page &&
-x.piece==piece
+a.name==x.name &&
+
+a.item==x.item &&
+
+a.page==x.page &&
+
+a.piece==x.piece
 
 );
 
 
 
-if(check){
+if(same){
 
-alert("คุณลงรายการนี้แล้ว");
+alert("ลงรายการนี้แล้ว");
 
 return;
 
@@ -117,30 +198,15 @@ return;
 
 
 
+
 await addDoc(
 collection(db,"bids"),
-{
-
-name:name,
-
-item:item,
-
-page:page,
-
-piece:piece,
-
-week:getWeek(),
-
-time:Date.now()
-
-}
-
+x
 );
 
 
 
-alert("ลงชื่อเรียบร้อย");
-
+alert("ลงชื่อแล้ว");
 
 
 document.getElementById("name").value="";
@@ -154,36 +220,10 @@ document.getElementById("piece").value="";
 
 
 
-// =======================
-// หาอาทิตย์ของรอบ
-// =======================
-
-function getWeek(){
-
-let now=new Date();
-
-let day=now.getDay();
-
-let diff=
-now.getDate()-day;
-
-
-let sunday=
-new Date(now.setDate(diff));
-
-
-return sunday.toLocaleDateString("th-TH");
-
-}
-
-
-
-
 
 // =======================
-// Real-time Firebase
+// Real-time
 // =======================
-
 
 onSnapshot(
 
@@ -192,13 +232,13 @@ collection(db,"bids"),
 orderBy("time","asc")
 ),
 
-(snapshot)=>{
+snap=>{
 
 
 data=[];
 
 
-snapshot.forEach(doc=>{
+snap.forEach(doc=>{
 
 
 data.push({
@@ -213,7 +253,6 @@ id:doc.id,
 });
 
 
-
 render();
 
 
@@ -225,39 +264,49 @@ render();
 
 
 
+
 // =======================
 // แสดงรายชื่อ
 // =======================
 
-
 function render(){
 
 
-let list=
-document.getElementById("list");
+let list=document.getElementById("list");
 
 
-if(!list) return;
+if(!list)return;
 
 
 
-list.innerHTML=
+list.innerHTML=data.map(x=>
 
-data.map(x=>
 
 `
 
-<div>
+<div class="item">
 
-${x.name}
-|
-${x.item}
-|
-${x.page}
-|
-ชิ้น ${x.piece}
+<b>👤 ${x.name}</b>
+
+<br>
+
+📦 ${x.item}
+
+<br>
+
+📄 ${x.page}
+
+<br>
+
+🔹 ชิ้น ${x.piece}
+
+<br>
+
+⏰ ลงชื่อเวลา ${x.registerTime || "-"}
+
 
 </div>
+
 
 `
 
@@ -271,10 +320,11 @@ ${x.page}
 
 
 
-// =======================
-// ดูรายการของตัวเอง
-// =======================
 
+
+// =======================
+// ดูรายการตัวเอง
+// =======================
 
 window.showMyList=function(){
 
@@ -283,93 +333,38 @@ let n=
 document.getElementById("myname").value;
 
 
-let result=
+let a=
 data.filter(x=>x.name==n);
 
 
 
 document.getElementById("mylist").innerHTML=
 
-
-result.map(x=>
+a.map(x=>
 
 `
 
-<div>
+<div class="item">
 
-${x.item}
-|
+📦 ${x.item}
+
+<br>
+
 ${x.page}
-|
+
+<br>
+
 ชิ้น ${x.piece}
+
+<br>
+
+⏰ ${x.registerTime}
 
 </div>
 
 `
 
 ).join("");
-
-
-
-}
-
-
-
-
-
-// =======================
-// วงล้อ (สำรอง)
-// =======================
-
-
-window.wheel=function(){
-
-
-let target=
-prompt("ใส่ชื่อไอเทม");
-
-
-
-let players=[
-
-...new Set(
-
-data
-.filter(x=>x.item==target)
-.map(x=>x.name)
-
-)
-
-];
-
-
-
-if(players.length<2){
-
-document.getElementById("result").innerHTML=
-"ไม่มีคนแย่ง";
-
-
-return;
-
-}
-
-
-
-let winner=
-
-players[
-Math.floor(
-Math.random()*players.length
-)
-];
-
-
-
-document.getElementById("result").innerHTML=
-
-"ผู้ได้สิทธิ์: "+winner;
-
 
 
 };
