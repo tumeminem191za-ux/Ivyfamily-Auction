@@ -12,18 +12,15 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-let data = [];
-
-let players = [];
-
-let angle = 0;
-
-let spinning = false;
+let data=[];
+let players=[];
+let angle=0;
+let spinning=false;
+let selectedWinner=null;
 
 
 
-// ================= LOGIN =================
-
+// LOGIN
 
 window.login=function(){
 
@@ -49,9 +46,7 @@ alert("รหัสผิด");
 
 
 
-
-// ================= LOAD DATA =================
-
+// โหลดข้อมูล realtime
 
 onSnapshot(
 
@@ -67,7 +62,6 @@ data=[];
 
 
 snap.forEach(d=>{
-
 
 let x=d.data();
 
@@ -96,9 +90,7 @@ id:d.id,
 
 
 
-
-// ================= LOAD WHEEL =================
-
+// โหลดคนเข้าในวงล้อ
 
 window.loadWheel=function(){
 
@@ -130,9 +122,7 @@ document.getElementById("players").innerHTML=
 players.map(x=>`
 
 <div class="player">
-
 👤 ${x}
-
 </div>
 
 `).join("");
@@ -149,24 +139,17 @@ drawWheel();
 
 
 
-
-
-// ================= DRAW =================
-
+// วาดวงล้อ
 
 function drawWheel(){
 
 
-let canvas=
-document.getElementById("wheel");
+let canvas=document.getElementById("wheel");
 
-
-let ctx=
-canvas.getContext("2d");
+let ctx=canvas.getContext("2d");
 
 
 let r=canvas.width/2;
-
 
 
 ctx.clearRect(
@@ -232,7 +215,6 @@ colors[i%colors.length];
 ctx.fill();
 
 
-
 ctx.strokeStyle="#fff";
 
 ctx.lineWidth=3;
@@ -241,20 +223,14 @@ ctx.stroke();
 
 
 
-
-// ชื่อ
-
-
 ctx.save();
 
 
 ctx.translate(r,r);
 
-
 ctx.rotate(
 start+(size/2)
 );
-
 
 
 ctx.fillStyle="#fff";
@@ -281,12 +257,9 @@ ctx.restore();
 
 
 
-
-// กลาง
-
+// กลางวง
 
 ctx.beginPath();
-
 
 ctx.arc(
 r,
@@ -317,19 +290,15 @@ r+8
 
 
 
-
 // เข็ม
 
-
 ctx.beginPath();
-
 
 ctx.moveTo(r-25,0);
 
 ctx.lineTo(r+25,0);
 
 ctx.lineTo(r,45);
-
 
 ctx.closePath();
 
@@ -339,376 +308,4 @@ ctx.fillStyle="#ffd700";
 ctx.fill();
 
 
-
 }
-
-
-
-
-
-
-
-
-// ================= SPIN =================
-
-
-window.spin=function(){
-
-
-if(spinning)return;
-
-
-if(players.length<2){
-
-alert("ต้องมีคนแย่งอย่างน้อย 2 คน");
-
-return;
-
-}
-
-
-
-spinning=true;
-
-
-
-let startAngle=angle;
-
-
-
-let rounds=
-Math.PI*2*8;
-
-
-
-let extra=
-Math.random()*Math.PI*2;
-
-
-
-let target=
-rounds+extra;
-
-
-
-let startTime=null;
-
-
-let duration=7000;
-
-
-
-
-function animate(time){
-
-
-if(!startTime)
-
-startTime=time;
-
-
-
-let progress=
-(time-startTime)/duration;
-
-
-
-if(progress>1)
-
-progress=1;
-
-
-
-// ค่อยๆช้าลง
-
-let ease=
-1-Math.pow(1-progress,5);
-
-
-
-angle=
-startAngle+(target*ease);
-
-
-
-drawWheel();
-
-
-
-if(progress<1){
-
-
-requestAnimationFrame(animate);
-
-
-}
-
-else{
-
-
-angle=
-angle%(Math.PI*2);
-
-
-drawWheel();
-
-
-finishSpin();
-
-
-}
-
-
-}
-
-
-
-requestAnimationFrame(animate);
-
-
-};
-
-
-
-
-
-
-
-
-// ================= FINISH =================
-
-
-async function finishSpin(){
-
-
-
-let item=
-document.getElementById("wheelItem").value;
-
-
-
-// ใช้ตำแหน่งเข็มด้านบนคำนวณ
-
-let size=
-(Math.PI*2)/players.length;
-
-
-
-let normalized=
-(2*Math.PI-angle)%(Math.PI*2);
-
-
-
-let index=
-Math.floor(
-normalized/size
-);
-
-
-
-if(index<0)
-
-index=0;
-
-
-
-let winner=
-players[index];
-
-
-
-
-// กัน undefined
-
-if(!winner){
-
-winner=players[0];
-
-}
-
-
-
-let winData=
-data.find(x=>
-
-x.item===item &&
-x.name===winner
-
-);
-
-
-
-
-
-document.getElementById("winnerBox").style.display="block";
-
-
-
-document.getElementById("winnerName").innerHTML=
-
-"🏆 "+winner;
-
-
-
-document.getElementById("winnerItem").innerHTML=
-
-`
-📦 ${item}
-<br>
-📄 หน้า ${winData?.page || "-"}
-ชิ้น ${winData?.piece || "-"}
-`;
-
-
-
-document.getElementById("result").innerHTML=
-
-"🎉 ผู้ได้สิทธิ์: "+winner;
-
-
-
-
-
-
-
-await addDoc(
-
-collection(db,"history"),
-
-{
-
-item:item,
-
-winner:winner,
-
-page:winData?.page || "",
-
-piece:winData?.piece || "",
-
-time:new Date().toLocaleString("th-TH")
-
-}
-
-);
-
-
-
-loadHistory();
-
-
-spinning=false;
-
-
-}
-
-
-
-
-
-
-// ================= HISTORY =================
-
-
-async function loadHistory(){
-
-
-let box=
-document.getElementById("history");
-
-
-if(!box)return;
-
-
-
-let snap=
-await getDocs(
-collection(db,"history")
-);
-
-
-
-box.innerHTML="";
-
-
-
-snap.forEach(d=>{
-
-
-let x=d.data();
-
-
-
-box.innerHTML+=`
-
-<div class="player">
-
-📦 ${x.item}
-
-<br>
-
-🏆 ${x.winner}
-
-<br>
-
-📄 หน้า ${x.page}
-
-ชิ้น ${x.piece}
-
-<br>
-
-⏰ ${x.time}
-
-</div>
-
-`;
-
-
-
-});
-
-
-}
-
-
-
-
-
-
-
-// ================= CLEAR =================
-
-
-window.clearAll=async function(){
-
-
-if(!confirm("ล้างรายชื่อทั้งหมด?"))
-
-return;
-
-
-
-let snap=
-await getDocs(
-collection(db,"bids")
-);
-
-
-
-for(let x of snap.docs){
-
-
-await deleteDoc(
-
-doc(db,"bids",x.id)
-
-);
-
-
-}
-
-
-
-alert("ล้างแล้ว");
-
-
-};
