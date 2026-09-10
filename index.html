@@ -7,114 +7,84 @@
 
 <title>Ivyfamily.Auction</title>
 
-
 <style>
 
 body{
-
 font-family:sans-serif;
-
 background:#0d0d12;
-
 color:white;
-
 padding:20px;
-
 }
 
 
 h1{
-
 text-align:center;
-
 color:#d8b4ff;
-
 }
 
 
 .card{
-
 background:#1c1c25;
-
 padding:20px;
-
 border-radius:16px;
-
 margin:15px 0;
-
-box-shadow:0 0 10px #000;
-
 }
 
 
 .status{
-
-text-align:center;
-
-font-size:20px;
-
-padding:10px;
-
-border-radius:10px;
-
 background:#292940;
+padding:12px;
+border-radius:10px;
+text-align:center;
+}
 
+
+.info{
+display:flex;
+justify-content:space-around;
+text-align:center;
+font-size:18px;
 }
 
 
 input,select,button{
-
 padding:10px;
-
 margin:5px;
-
 border-radius:8px;
-
 border:none;
-
 }
 
 
 button{
-
 background:#8b5cf6;
-
 color:white;
-
 cursor:pointer;
-
 }
 
 
 button:hover{
-
 opacity:.8;
-
 }
 
 
 .item{
-
 background:#292936;
-
 padding:12px;
-
 margin:8px 0;
-
 border-radius:10px;
-
 }
 
 
-</style>
+.name{
+color:#d8b4ff;
+}
 
+</style>
 
 </head>
 
 
-
 <body>
-
 
 
 <h1>
@@ -122,25 +92,51 @@ border-radius:10px;
 </h1>
 
 
+
 <div class="card">
 
-
 <div id="status" class="status">
+กำลังโหลด...
+</div>
 
-สถานะกำลังโหลด...
+
+<br>
+
+
+<div class="info">
+
+
+<div>
+
+👥
+
+<br>
+
+<span id="people">0</span>
+
+<br>
+
+ผู้ประมูล
 
 </div>
 
 
-<p style="text-align:center">
+<div>
 
-ดูของ 21:00 - 21:10
+📦
 
 <br>
 
-ประมูล 21:10 - 21:40
+<span id="count">0</span>
 
-</p>
+<br>
+
+รายการ
+
+</div>
+
+
+</div>
 
 
 </div>
@@ -153,7 +149,6 @@ border-radius:10px;
 
 
 <h2>📝 ลงชื่อประมูล</h2>
-
 
 
 <input id="name" placeholder="ชื่อผู้เล่น">
@@ -174,17 +169,11 @@ border-radius:10px;
 <select id="page">
 
 <option>หน้า 1</option>
-
 <option>หน้า 2</option>
-
 <option>หน้า 3</option>
-
 <option>หน้า 4</option>
-
 <option>หน้า 5</option>
-
 <option>หน้า 6</option>
-
 <option>หน้า 7</option>
 
 </select>
@@ -197,9 +186,7 @@ border-radius:10px;
 
 
 <button onclick="add()">
-
 ส่งชื่อเข้าประมูล
-
 </button>
 
 
@@ -212,16 +199,14 @@ border-radius:10px;
 <div class="card">
 
 
-<h2>🔎 ดูรายการของฉัน</h2>
+<h2>🔎 รายการของฉัน</h2>
 
 
 <input id="myname" placeholder="ชื่อผู้เล่น">
 
 
 <button onclick="showMyList()">
-
 ค้นหา
-
 </button>
 
 
@@ -234,14 +219,11 @@ border-radius:10px;
 
 
 
-
 <div class="card">
 
 
 <h2>
-
-📋 รายชื่อผู้ประมูลทั้งหมด
-
+📦 รายการประมูลทั้งหมด
 </h2>
 
 
@@ -254,7 +236,6 @@ border-radius:10px;
 
 
 <script type="module" src="app.js"></script>
-
 
 
 </body>
