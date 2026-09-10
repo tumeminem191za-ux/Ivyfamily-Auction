@@ -12,35 +12,17 @@ import {
 let data=[];
 
 
-// =======================
-// เช็กเวลาไทย
-// =======================
-
-function getThaiTime(){
-
-return new Date(
-new Date().toLocaleString("en-US",
-{
-timeZone:"Asia/Bangkok"
-})
-);
-
-}
-
-
-
-// =======================
-// สถานะ
-// =======================
+// ======================
+// เช็กเวลา
+// ======================
 
 function status(){
 
-let now=getThaiTime();
+let now=new Date();
 
-let t=
+let time=
 now.getHours()*60+
 now.getMinutes();
-
 
 
 let box=document.getElementById("status");
@@ -48,14 +30,13 @@ let box=document.getElementById("status");
 if(!box)return;
 
 
-
-if(t>=1260 && t<1270){
+if(time>=1260 && time<1270){
 
 box.innerHTML="🟢 เปิดรับชื่อ";
 
 }
 
-else if(t>=1270 && t<1300){
+else if(time>=1270 && time<1300){
 
 box.innerHTML="🟡 กำลังประมูล";
 
@@ -63,10 +44,9 @@ box.innerHTML="🟡 กำลังประมูล";
 
 else{
 
-box.innerHTML="🔴 ปิดรอบ";
+box.innerHTML="🔴 ปิดรับชื่อ";
 
 }
-
 
 }
 
@@ -78,57 +58,11 @@ status();
 
 
 
-// =======================
-// หาอาทิตย์
-// =======================
-
-function getWeek(){
-
-let now=getThaiTime();
-
-let day=now.getDay();
-
-let diff=now.getDate()-day;
-
-
-let sunday=new Date(now.setDate(diff));
-
-
-return sunday.toLocaleDateString("th-TH");
-
-}
-
-
-
-
-
-// =======================
-// ส่งชื่อ
-// =======================
+// ======================
+// ลงชื่อ
+// ======================
 
 window.add=async function(){
-
-
-
-let now=getThaiTime();
-
-
-let minute=
-now.getHours()*60+
-now.getMinutes();
-
-
-
-if(minute<1260 || minute>=1270){
-
-alert("หมดเวลาลงชื่อแล้ว");
-
-return;
-
-}
-
-
-
 
 
 let x={
@@ -143,23 +77,14 @@ page:document.getElementById("page").value,
 piece:document.getElementById("piece").value,
 
 
-week:getWeek(),
-
-
-// เวลาจริงที่ลง
-
 time:Date.now(),
 
 
 registerTime:
-
-now.toLocaleTimeString("th-TH")
-
+new Date().toLocaleTimeString("th-TH")
 
 
 };
-
-
 
 
 
@@ -170,6 +95,7 @@ alert("กรุณาใส่ชื่อ");
 return;
 
 }
+
 
 
 
@@ -209,6 +135,7 @@ x
 alert("ลงชื่อแล้ว");
 
 
+
 document.getElementById("name").value="";
 
 document.getElementById("piece").value="";
@@ -219,11 +146,9 @@ document.getElementById("piece").value="";
 
 
 
-
-
-// =======================
-// Real-time
-// =======================
+// ======================
+// realtime
+// ======================
 
 onSnapshot(
 
@@ -253,6 +178,7 @@ id:doc.id,
 });
 
 
+
 render();
 
 
@@ -265,9 +191,10 @@ render();
 
 
 
-// =======================
-// แสดงรายชื่อ
-// =======================
+// ======================
+// แสดงผล
+// ======================
+
 
 function render(){
 
@@ -279,38 +206,113 @@ if(!list)return;
 
 
 
-list.innerHTML=data.map(x=>
+// จำนวนรายการ
+
+let count=document.getElementById("count");
+
+if(count){
+
+count.innerHTML=data.length;
+
+}
 
 
-`
+
+// จำนวนคน
+
+let people=document.getElementById("people");
+
+if(people){
+
+let names=[
+
+...new Set(
+data.map(x=>x.name)
+)
+
+];
+
+
+people.innerHTML=names.length;
+
+
+}
+
+
+
+
+// แยกตามไอเทม
+
+let group={};
+
+
+
+data.forEach(x=>{
+
+
+if(!group[x.item]){
+
+group[x.item]=[];
+
+}
+
+
+group[x.item].push(x);
+
+
+});
+
+
+
+
+list.innerHTML=
+Object.keys(group).map(item=>{
+
+
+return `
 
 <div class="item">
 
-<b>👤 ${x.name}</b>
 
-<br>
+<h3>📦 ${item}</h3>
 
-📦 ${x.item}
+
+${
+group[item].map(x=>
+
+`
+
+<div>
+
+👤 <span class="name">${x.name}</span>
 
 <br>
 
 📄 ${x.page}
 
-<br>
-
-🔹 ชิ้น ${x.piece}
+| ชิ้น ${x.piece}
 
 <br>
 
-⏰ ลงชื่อเวลา ${x.registerTime || "-"}
+⏰ ${x.registerTime || "-"}
+
+</div>
+
+<hr>
+
+`
+
+).join("")
+}
 
 
 </div>
 
 
-`
+`;
 
-).join("");
+
+}).join("");
 
 
 
@@ -320,11 +322,10 @@ list.innerHTML=data.map(x=>
 
 
 
+// ======================
+// ดูรายการของฉัน
+// ======================
 
-
-// =======================
-// ดูรายการตัวเอง
-// =======================
 
 window.showMyList=function(){
 
@@ -340,6 +341,7 @@ data.filter(x=>x.name==n);
 
 document.getElementById("mylist").innerHTML=
 
+
 a.map(x=>
 
 `
@@ -352,19 +354,18 @@ a.map(x=>
 
 ${x.page}
 
-<br>
-
-ชิ้น ${x.piece}
+| ชิ้น ${x.piece}
 
 <br>
 
-⏰ ${x.registerTime}
+⏰ ${x.registerTime || "-"}
 
 </div>
 
 `
 
 ).join("");
+
 
 
 };
