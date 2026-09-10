@@ -7,28 +7,59 @@
 
 <title>Ivyfamily Admin</title>
 
+
 <style>
 
 body{
+
 font-family:sans-serif;
 background:#101010;
 color:white;
-padding:20px
+padding:20px;
+
 }
+
 
 .card{
+
 background:#222;
-padding:15px;
-border-radius:12px;
-margin:12px 0
+padding:20px;
+border-radius:15px;
+margin:15px 0;
+
 }
 
-button,input{
+
+button,input,select{
+
 padding:10px;
-margin:5px
+margin:5px;
+border-radius:8px;
+border:none;
+
+}
+
+
+button{
+
+background:#8b5cf6;
+color:white;
+cursor:pointer;
+
+}
+
+
+.item{
+
+background:#333;
+padding:10px;
+border-radius:10px;
+margin:8px 0;
+
 }
 
 </style>
+
 
 </head>
 
@@ -36,7 +67,10 @@ margin:5px
 <body>
 
 
-<h1>Ivyfamily Admin</h1>
+<h1>
+🟣 Ivyfamily Admin
+</h1>
+
 
 
 <div class="card">
@@ -58,13 +92,77 @@ margin:5px
 
 
 
+
 <div id="admin" style="display:none">
+
+
+
 
 
 <div class="card">
 
 
-<h3>จัดการประมูล</h3>
+<h2>
+📊 ข้อมูลประมูล
+</h2>
+
+
+<p>
+รายการทั้งหมด:
+<span id="count">0</span>
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+<div class="card">
+
+
+<h2>
+🎡 วงล้อประมูล
+</h2>
+
+
+
+<select id="wheelItem">
+
+<option>
+เลือกไอเทม
+</option>
+
+<option>
+หลวนเฟิงลั่วหยาง
+</option>
+
+<option>
+ญาณแท้เชี่ยวชาญชูโจว
+</option>
+
+<option>
+ญาณแท้ชูโจว
+</option>
+
+
+</select>
+
+
+<br>
+
+
+<button onclick="showWheelList()">
+ดูรายชื่อผู้แย่ง
+</button>
+
+
+
+<div id="wheelList"></div>
+
 
 
 <button onclick="wheel()">
@@ -72,15 +170,39 @@ margin:5px
 </button>
 
 
-<button onclick="clearAll()">
-ล้างรายชื่อ
-</button>
-
-
 <h2 id="result"></h2>
 
 
+
 </div>
+
+
+
+
+
+
+
+
+<div class="card">
+
+
+<h2>
+🗑 จัดการระบบ
+</h2>
+
+
+
+<button onclick="clearAll()">
+
+ล้างรายชื่อทั้งหมด
+
+</button>
+
+
+
+</div>
+
+
 
 
 </div>
