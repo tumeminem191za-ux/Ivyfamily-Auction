@@ -575,7 +575,7 @@ loadHistory();
 
 
 spinning=false;
-
+selectedWinner=null;
 
 }
 
