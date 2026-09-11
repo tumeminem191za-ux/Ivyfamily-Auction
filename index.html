@@ -7,6 +7,7 @@
 
 <title>Ivyfamily.Auction</title>
 
+
 <style>
 
 body{
@@ -48,38 +49,75 @@ font-size:18px;
 
 
 input,select,button{
+
 padding:10px;
 margin:5px;
 border-radius:8px;
 border:none;
+
 }
 
 
 button{
+
 background:#8b5cf6;
 color:white;
 cursor:pointer;
+
 }
 
 
 button:hover{
+
 opacity:.8;
+
 }
 
 
 .item{
+
 background:#292936;
 padding:12px;
 margin:8px 0;
 border-radius:10px;
+
 }
 
 
 .name{
+
 color:#d8b4ff;
+
 }
 
+
+/* คู่มือ */
+
+#guide{
+
+display:none;
+
+}
+
+
+.guide-img{
+
+width:100%;
+
+max-width:900px;
+
+border-radius:16px;
+
+display:block;
+
+margin:auto;
+
+}
+
+
+
 </style>
+
 
 </head>
 
@@ -93,10 +131,15 @@ color:#d8b4ff;
 
 
 
+
+
 <div class="card">
 
+
 <div id="status" class="status">
+
 กำลังโหลด...
+
 </div>
 
 
@@ -121,6 +164,7 @@ color:#d8b4ff;
 </div>
 
 
+
 <div>
 
 📦
@@ -136,10 +180,58 @@ color:#d8b4ff;
 </div>
 
 
+
 </div>
 
 
 </div>
+
+
+
+
+
+
+
+
+<!-- คู่มือประมูล -->
+
+
+<div class="card">
+
+
+<h2>
+📖 วิธีการประมูล
+</h2>
+
+
+<p>
+ดูตัวอย่างการเลือกชิ้นและการลงชื่อก่อนเข้าประมูล
+</p>
+
+
+<button onclick="showGuide()">
+
+📖 เปิดคู่มือ
+
+</button>
+
+
+<div id="guide">
+
+
+<img 
+src="auction-guide.png"
+class="guide-img"
+>
+
+
+</div>
+
+
+</div>
+
+
+
 
 
 
@@ -148,49 +240,99 @@ color:#d8b4ff;
 <div class="card">
 
 
-<h2>📝 ลงชื่อประมูล</h2>
+<h2>
+📝 ลงชื่อประมูล
+</h2>
 
 
-<input id="name" placeholder="ชื่อผู้เล่น">
+
+<input 
+id="name"
+placeholder="ชื่อผู้เล่น">
+
 
 
 <select id="item">
 
-<option>หลวนเฟิงลั่วหยาง</option>
 
-<option>ญาณแท้เชี่ยวชาญชูโจว</option>
+<option>
+หลวนเฟิงลั่วหยาง
+</option>
 
-<option>ญาณแท้ชูโจว</option>
+
+<option>
+ญาณแท้เชี่ยวชาญชูโจว
+</option>
+
+
+<option>
+ญาณแท้ชูโจว
+</option>
+
 
 </select>
+
+
 
 
 
 <select id="page">
 
-<option>หน้า 1</option>
-<option>หน้า 2</option>
-<option>หน้า 3</option>
-<option>หน้า 4</option>
-<option>หน้า 5</option>
-<option>หน้า 6</option>
-<option>หน้า 7</option>
+
+<option>
+หน้า 1
+</option>
+
+<option>
+หน้า 2
+</option>
+
+<option>
+หน้า 3
+</option>
+
+<option>
+หน้า 4
+</option>
+
+<option>
+หน้า 5
+</option>
+
+<option>
+หน้า 6
+</option>
+
+<option>
+หน้า 7
+</option>
+
 
 </select>
 
 
-<input id="piece" placeholder="ชิ้นที่">
+
+
+<input 
+id="piece"
+placeholder="ชิ้นที่">
+
 
 
 <br>
 
 
 <button onclick="add()">
+
 ส่งชื่อเข้าประมูล
+
 </button>
 
 
 </div>
+
+
+
 
 
 
@@ -199,21 +341,31 @@ color:#d8b4ff;
 <div class="card">
 
 
-<h2>🔎 รายการของฉัน</h2>
+<h2>
+🔎 รายการของฉัน
+</h2>
 
 
-<input id="myname" placeholder="ชื่อผู้เล่น">
+
+<input
+id="myname"
+placeholder="ชื่อผู้เล่น">
 
 
 <button onclick="showMyList()">
+
 ค้นหา
+
 </button>
+
 
 
 <div id="mylist"></div>
 
 
 </div>
+
+
 
 
 
@@ -232,6 +384,35 @@ color:#d8b4ff;
 
 </div>
 
+
+
+
+
+
+
+<script>
+
+
+function showGuide(){
+
+let x=document.getElementById("guide");
+
+
+if(x.style.display==="block"){
+
+x.style.display="none";
+
+}
+
+else{
+
+x.style.display="block";
+
+}
+
+}
+
+</script>
 
 
 
