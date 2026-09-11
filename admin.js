@@ -675,6 +675,8 @@ box.innerHTML+=`
 // ================= CLEAR =================
 
 
+// ================= CLEAR =================
+
 window.clearAll=async function(){
 
 if(!confirm("ล้างรายชื่อผู้ประมูลทั้งหมด?"))
@@ -683,30 +685,23 @@ return;
 
 try{
 
-
-let snap =
-await getDocs(
+let snap = await getDocs(
 collection(db,"bids")
 );
 
 
-
-let count=0;
+let count = 0;
 
 
 for(const x of snap.docs){
-
 
 await deleteDoc(
 doc(db,"bids",x.id)
 );
 
-
 count++;
 
-
 }
-
 
 
 alert("ล้างแล้วทั้งหมด "+count+" รายการ");
@@ -721,16 +716,5 @@ console.log(e);
 alert("ล้างไม่สำเร็จ");
 
 }
-
-
-};
-
-
-}
-
-
-
-alert("ล้างรายชื่อแล้ว");
-
 
 };
