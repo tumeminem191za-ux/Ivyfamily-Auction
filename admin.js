@@ -20,7 +20,7 @@ let selectedWinner=null;
 
 
 
-// LOGIN
+// ================= LOGIN =================
 
 window.login=function(){
 
@@ -46,7 +46,8 @@ alert("รหัสผิด");
 
 
 
-// โหลดข้อมูล realtime
+// ================= REALTIME BIDS =================
+
 
 onSnapshot(
 
@@ -90,7 +91,8 @@ id:d.id,
 
 
 
-// โหลดคนเข้าในวงล้อ
+// ================= LOAD WHEEL =================
+
 
 window.loadWheel=function(){
 
@@ -118,7 +120,6 @@ data
 
 document.getElementById("players").innerHTML=
 
-
 players.map(x=>`
 
 <div class="player">
@@ -138,8 +139,8 @@ drawWheel();
 
 
 
+// ================= DRAW WHEEL =================
 
-// วาดวงล้อ
 
 function drawWheel(){
 
@@ -182,16 +183,14 @@ let colors=[
 
 
 
-let size=
-(Math.PI*2)/players.length;
+let size=(Math.PI*2)/players.length;
 
 
 
 players.forEach((name,i)=>{
 
 
-let start=
-angle+(i*size);
+let start=angle+(i*size);
 
 
 
@@ -208,9 +207,7 @@ start+size
 );
 
 
-ctx.fillStyle=
-colors[i%colors.length];
-
+ctx.fillStyle=colors[i%colors.length];
 
 ctx.fill();
 
@@ -225,20 +222,12 @@ ctx.stroke();
 
 ctx.save();
 
-
 ctx.translate(r,r);
 
-ctx.rotate(
-start+(size/2)
-);
+ctx.rotate(start+(size/2));
 
 
 ctx.fillStyle="#fff";
-
-ctx.shadowColor="#000";
-
-ctx.shadowBlur=8;
-
 
 ctx.font="bold 16px sans-serif";
 
@@ -257,7 +246,8 @@ ctx.restore();
 
 
 
-// กลางวง
+// CENTER
+
 
 ctx.beginPath();
 
@@ -290,7 +280,8 @@ r+8
 
 
 
-// เข็ม
+// POINTER
+
 
 ctx.beginPath();
 
@@ -309,7 +300,7 @@ ctx.fill();
 
 
 }
-// ================= SPIN FAIR SYSTEM =================
+// ================= SPIN =================
 
 
 window.spin=function(){
@@ -320,7 +311,7 @@ if(spinning)return;
 
 if(players.length<2){
 
-alert("กรุณาโหลดรายชื่อก่อน และต้องมีคนแย่งอย่างน้อย 2 คน");
+alert("โหลดรายชื่อก่อน (ต้องมีอย่างน้อย 2 คน)");
 
 return;
 
@@ -331,18 +322,12 @@ spinning=true;
 
 
 
-// สุ่มผู้ชนะก่อน
-
 selectedWinner =
 players[
-Math.floor(
-Math.random()*players.length
-)
+Math.floor(Math.random()*players.length)
 ];
 
 
-
-// หา index ของผู้ชนะ
 
 let winnerIndex =
 players.indexOf(selectedWinner);
@@ -354,23 +339,20 @@ let size =
 
 
 
-// ตำแหน่งเป้าหมาย
-
 let targetAngle =
 
 (
--(winnerIndex * size)
+-(winnerIndex*size)
 -
-(size / 2)
+(size/2)
 +
-(Math.PI / 2)
+(Math.PI/2)
 );
 
 
 
-// เพิ่มรอบหมุน
-
 let startAngle=angle;
+
 
 
 let totalRotation =
@@ -379,11 +361,7 @@ let totalRotation =
 
 +
 
-(
-targetAngle-angle%(Math.PI*2)
-);
-
-
+(targetAngle-angle%(Math.PI*2));
 
 
 
@@ -401,11 +379,8 @@ if(!startTime)
 startTime=time;
 
 
-
-let progress=
-
+let progress =
 (time-startTime)/duration;
-
 
 
 if(progress>1)
@@ -414,20 +389,13 @@ progress=1;
 
 
 
-
-// easing ช้าลง
-
-let ease=
-
+let ease =
 1-Math.pow(1-progress,5);
 
 
 
-angle=
-
-startAngle+
-
-(totalRotation*ease);
+angle =
+startAngle+(totalRotation*ease);
 
 
 
@@ -444,10 +412,9 @@ requestAnimationFrame(animate);
 else{
 
 
-angle=targetAngle % (Math.PI*2);
+angle=targetAngle%(Math.PI*2);
 
 drawWheel();
-
 
 finishSpin();
 
@@ -458,9 +425,7 @@ finishSpin();
 }
 
 
-
 requestAnimationFrame(animate);
-
 
 
 };
@@ -469,31 +434,24 @@ requestAnimationFrame(animate);
 
 
 
-
-
-// ================= FINISH =================
+// ================= FINISH WINNER =================
 
 
 async function finishSpin(){
 
 
-
 let winner=selectedWinner;
 
 
-
-let item=
-
+let item =
 document.getElementById("wheelItem").value;
 
 
 
-let winData=
-
+let winData =
 data.find(x=>
 
 x.item===item &&
-
 x.name===winner
 
 );
@@ -501,11 +459,7 @@ x.name===winner
 
 
 
-// Banner
-
-
 document.getElementById("winnerBox").style.display="block";
-
 
 
 document.getElementById("winnerName").innerHTML=
@@ -522,13 +476,11 @@ document.getElementById("winnerItem").innerHTML=
 
 <br>
 
-📄 หน้า ${winData?.page || "-"}
+📄 ${winData?.page || "-"}
 
 ชิ้น ${winData?.piece || "-"}
 
 `;
-
-
 
 
 
@@ -538,11 +490,6 @@ document.getElementById("result").innerHTML=
 
 
 
-
-
-
-
-// บันทึกประวัติ
 
 
 await addDoc(
@@ -571,13 +518,11 @@ loadHistory();
 
 
 spinning=false;
+
 selectedWinner=null;
 
+
 }
-
-
-
-
 
 
 
@@ -587,14 +532,9 @@ selectedWinner=null;
 
 window.closeWinner=function(){
 
-
 document.getElementById("winnerBox").style.display="none";
 
-
 };
-
-
-
 
 
 
@@ -606,21 +546,16 @@ document.getElementById("winnerBox").style.display="none";
 async function loadHistory(){
 
 
-let box=
-
-document.getElementById("history");
+let box=document.getElementById("history");
 
 
 if(!box)return;
 
 
 
-let snap=
-
+let snap =
 await getDocs(
-
 collection(db,"history")
-
 );
 
 
@@ -660,6 +595,7 @@ box.innerHTML+=`
 
 `;
 
+
 });
 
 
@@ -668,53 +604,163 @@ box.innerHTML+=`
 
 
 
+// ================= SEARCH HISTORY =================
+
+
+window.searchHistory=function(){
+
+
+let key =
+document.getElementById("searchHistory").value
+.toLowerCase();
+
+
+
+let box =
+document.getElementById("history");
+
+
+box.innerHTML="";
+
+
+
+data.forEach(x=>{
+
+
+if(
+
+x.name.toLowerCase().includes(key)
+
+||
+
+x.item.toLowerCase().includes(key)
+
+){
+
+
+box.innerHTML+=`
+
+<div class="player">
+
+👤 ${x.name}
+
+<br>
+
+📦 ${x.item}
+
+<br>
+
+📄 ${x.page}
+
+ชิ้น ${x.piece}
+
+</div>
+
+`;
+
+}
+
+
+});
+
+
+};
 
 
 
 
-// ================= CLEAR =================
 
+// ================= CLEAR BIDS =================
 
-// ================= CLEAR =================
 
 window.clearAll=async function(){
 
+
 if(!confirm("ล้างรายชื่อผู้ประมูลทั้งหมด?"))
+
 return;
 
 
-try{
 
-let snap = await getDocs(
+let snap =
+await getDocs(
 collection(db,"bids")
 );
 
 
-let count = 0;
+
+let count=0;
+
 
 
 for(const x of snap.docs){
 
+
 await deleteDoc(
 doc(db,"bids",x.id)
 );
+
 
 count++;
 
 }
 
 
-alert("ล้างแล้วทั้งหมด "+count+" รายการ");
 
+alert(
+"ล้างรายชื่อแล้ว "+count+" รายการ"
+);
+
+
+};
+
+
+
+
+
+// ================= CLEAR HISTORY =================
+
+
+window.clearHistory=async function(){
+
+
+if(!confirm("ล้างประวัติผู้ชนะทั้งหมด?"))
+
+return;
+
+
+
+let snap =
+await getDocs(
+collection(db,"history")
+);
+
+
+
+let count=0;
+
+
+
+for(const x of snap.docs){
+
+
+await deleteDoc(
+doc(db,"history",x.id)
+);
+
+
+count++;
 
 }
 
-catch(e){
 
-console.log(e);
 
-alert("ล้างไม่สำเร็จ");
+document.getElementById("history").innerHTML="";
 
-}
+
+alert(
+"ล้างประวัติแล้ว "+count+" รายการ"
+);
+
 
 };
