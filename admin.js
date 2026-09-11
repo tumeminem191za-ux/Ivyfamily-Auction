@@ -1,15 +1,17 @@
 import { db } from "./firebase.js";
 
 import {
- collection,
- onSnapshot,
- query,
- orderBy,
- addDoc,
- getDocs,
- deleteDoc,
- doc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+collection,
+onSnapshot,
+query,
+orderBy,
+addDoc,
+getDocs,
+deleteDoc,
+doc
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 
 let data=[];
@@ -21,6 +23,7 @@ let selectedWinner=null;
 
 
 // ================= LOGIN =================
+
 
 window.login=function(){
 
@@ -46,7 +49,8 @@ alert("รหัสผิด");
 
 
 
-// ================= REALTIME BIDS =================
+
+// ================= REALTIME BID =================
 
 
 onSnapshot(
@@ -64,10 +68,12 @@ data=[];
 
 snap.forEach(d=>{
 
+
 let x=d.data();
 
 
 if(x.name && x.item){
+
 
 data.push({
 
@@ -76,6 +82,7 @@ id:d.id,
 ...x
 
 });
+
 
 }
 
@@ -86,6 +93,7 @@ id:d.id,
 }
 
 );
+
 
 
 
@@ -120,10 +128,13 @@ data
 
 document.getElementById("players").innerHTML=
 
+
 players.map(x=>`
 
 <div class="player">
+
 👤 ${x}
+
 </div>
 
 `).join("");
@@ -134,6 +145,7 @@ drawWheel();
 
 
 };
+
 
 
 
@@ -151,6 +163,7 @@ let ctx=canvas.getContext("2d");
 
 
 let r=canvas.width/2;
+
 
 
 ctx.clearRect(
@@ -198,6 +211,7 @@ ctx.beginPath();
 
 ctx.moveTo(r,r);
 
+
 ctx.arc(
 r,
 r,
@@ -207,14 +221,14 @@ start+size
 );
 
 
-ctx.fillStyle=colors[i%colors.length];
+ctx.fillStyle=
+colors[i%colors.length];
+
 
 ctx.fill();
 
 
 ctx.strokeStyle="#fff";
-
-ctx.lineWidth=3;
 
 ctx.stroke();
 
@@ -222,31 +236,34 @@ ctx.stroke();
 
 ctx.save();
 
+
 ctx.translate(r,r);
 
-ctx.rotate(start+(size/2));
+ctx.rotate(start+size/2);
 
 
-ctx.fillStyle="#fff";
+ctx.fillStyle="white";
 
 ctx.font="bold 16px sans-serif";
 
 
 ctx.fillText(
 name,
-80,
+90,
 5
 );
 
 
+
 ctx.restore();
+
 
 
 });
 
 
 
-// CENTER
+// กลางวง
 
 
 ctx.beginPath();
@@ -265,7 +282,7 @@ ctx.fillStyle="#111";
 ctx.fill();
 
 
-ctx.fillStyle="#ffd700";
+ctx.fillStyle="gold";
 
 ctx.font="bold 22px sans-serif";
 
@@ -280,7 +297,7 @@ r+8
 
 
 
-// POINTER
+// เข็ม
 
 
 ctx.beginPath();
@@ -294,12 +311,20 @@ ctx.lineTo(r,45);
 ctx.closePath();
 
 
-ctx.fillStyle="#ffd700";
+ctx.fillStyle="gold";
 
 ctx.fill();
 
 
 }
+
+
+
+
+
+
+
+
 // ================= SPIN =================
 
 
@@ -311,7 +336,7 @@ if(spinning)return;
 
 if(players.length<2){
 
-alert("โหลดรายชื่อก่อน (ต้องมีอย่างน้อย 2 คน)");
+alert("โหลดรายชื่อก่อน");
 
 return;
 
@@ -322,46 +347,47 @@ spinning=true;
 
 
 
-selectedWinner =
+selectedWinner=
+
 players[
 Math.floor(Math.random()*players.length)
 ];
 
 
 
-let winnerIndex =
+let index=
 players.indexOf(selectedWinner);
 
 
 
-let size =
+let size=
 (Math.PI*2)/players.length;
 
 
 
-let targetAngle =
+let target=
 
 (
--(winnerIndex*size)
+-(index*size)
 -
 (size/2)
 +
-(Math.PI/2)
+Math.PI/2
 );
 
 
 
-let startAngle=angle;
+let start=angle;
 
 
 
-let totalRotation =
+let rotate=
 
 (Math.PI*2*8)
 
 +
 
-(targetAngle-angle%(Math.PI*2));
+(target-angle%(Math.PI*2));
 
 
 
@@ -371,31 +397,30 @@ let duration=7000;
 
 
 
-function animate(time){
+
+function animate(t){
 
 
 if(!startTime)
 
-startTime=time;
-
-
-let progress =
-(time-startTime)/duration;
-
-
-if(progress>1)
-
-progress=1;
+startTime=t;
 
 
 
-let ease =
-1-Math.pow(1-progress,5);
+let p=(t-startTime)/duration;
+
+
+if(p>1)p=1;
 
 
 
-angle =
-startAngle+(totalRotation*ease);
+let ease=
+1-Math.pow(1-p,5);
+
+
+
+angle=
+start+(rotate*ease);
 
 
 
@@ -403,7 +428,7 @@ drawWheel();
 
 
 
-if(progress<1){
+if(p<1){
 
 requestAnimationFrame(animate);
 
@@ -412,9 +437,10 @@ requestAnimationFrame(animate);
 else{
 
 
-angle=targetAngle%(Math.PI*2);
+angle=target;
 
 drawWheel();
+
 
 finishSpin();
 
@@ -423,6 +449,7 @@ finishSpin();
 
 
 }
+
 
 
 requestAnimationFrame(animate);
@@ -434,21 +461,24 @@ requestAnimationFrame(animate);
 
 
 
-// ================= FINISH WINNER =================
+
+
+// ================= FINISH =================
 
 
 async function finishSpin(){
 
 
-let winner=selectedWinner;
-
-
-let item =
+let item=
 document.getElementById("wheelItem").value;
 
 
+let winner=selectedWinner;
 
-let winData =
+
+
+let winData=
+
 data.find(x=>
 
 x.item===item &&
@@ -459,16 +489,17 @@ x.name===winner
 
 
 
-document.getElementById("winnerBox").style.display="block";
+
+winnerBox.style.display="block";
 
 
-document.getElementById("winnerName").innerHTML=
+winnerName.innerHTML=
 
 "🏆 "+winner;
 
 
 
-document.getElementById("winnerItem").innerHTML=
+winnerItem.innerHTML=
 
 `
 
@@ -476,7 +507,7 @@ document.getElementById("winnerItem").innerHTML=
 
 <br>
 
-📄 ${winData?.page || "-"}
+📄 หน้า ${winData?.page || "-"}
 
 ชิ้น ${winData?.piece || "-"}
 
@@ -484,7 +515,7 @@ document.getElementById("winnerItem").innerHTML=
 
 
 
-document.getElementById("result").innerHTML=
+result.innerHTML=
 
 "🎉 ผู้ได้สิทธิ์: "+winner;
 
@@ -527,14 +558,16 @@ selectedWinner=null;
 
 
 
-// ================= CLOSE BANNER =================
+
 
 
 window.closeWinner=function(){
 
-document.getElementById("winnerBox").style.display="none";
+winnerBox.style.display="none";
 
 };
+
+
 
 
 
@@ -553,7 +586,8 @@ if(!box)return;
 
 
 
-let snap =
+let snap=
+
 await getDocs(
 collection(db,"history")
 );
@@ -568,7 +602,6 @@ snap.forEach(d=>{
 
 
 let x=d.data();
-
 
 
 box.innerHTML+=`
@@ -595,7 +628,6 @@ box.innerHTML+=`
 
 `;
 
-
 });
 
 
@@ -604,30 +636,32 @@ box.innerHTML+=`
 
 
 
-// ================= SEARCH HISTORY =================
+
+
+
+// ================= SEARCH =================
 
 
 window.searchHistory=function(){
 
 
-let key =
-document.getElementById("searchHistory").value
+let key=
+
+document.getElementById("searchHistory")
+.value
 .toLowerCase();
 
 
 
-let box =
-document.getElementById("history");
+let box=document.getElementById("history");
 
 
 box.innerHTML="";
 
 
 
-data.forEach(x=>{
+data.filter(x=>
 
-
-if(
 
 x.name.toLowerCase().includes(key)
 
@@ -635,7 +669,10 @@ x.name.toLowerCase().includes(key)
 
 x.item.toLowerCase().includes(key)
 
-){
+
+)
+
+.forEach(x=>{
 
 
 box.innerHTML+=`
@@ -650,16 +687,13 @@ box.innerHTML+=`
 
 <br>
 
-📄 ${x.page}
+📄 หน้า ${x.page}
 
 ชิ้น ${x.piece}
 
 </div>
 
 `;
-
-}
-
 
 });
 
@@ -670,49 +704,48 @@ box.innerHTML+=`
 
 
 
-// ================= CLEAR BIDS =================
+
+
+// ================= CLEAR BID =================
 
 
 window.clearAll=async function(){
 
 
-if(!confirm("ล้างรายชื่อผู้ประมูลทั้งหมด?"))
+if(!confirm("ล้างรายชื่อประมูลทั้งหมด?"))
 
 return;
 
 
 
-let snap =
+let snap=
+
 await getDocs(
 collection(db,"bids")
 );
 
 
 
-let count=0;
-
-
-
-for(const x of snap.docs){
+for(let x of snap.docs){
 
 
 await deleteDoc(
+
 doc(db,"bids",x.id)
+
 );
 
-
-count++;
 
 }
 
 
 
-alert(
-"ล้างรายชื่อแล้ว "+count+" รายการ"
-);
+alert("ล้างรายชื่อแล้ว");
 
 
 };
+
+
 
 
 
@@ -730,26 +763,23 @@ return;
 
 
 
-let snap =
+let snap=
+
 await getDocs(
 collection(db,"history")
 );
 
 
 
-let count=0;
-
-
-
-for(const x of snap.docs){
+for(let x of snap.docs){
 
 
 await deleteDoc(
+
 doc(db,"history",x.id)
+
 );
 
-
-count++;
 
 }
 
@@ -758,9 +788,7 @@ count++;
 document.getElementById("history").innerHTML="";
 
 
-alert(
-"ล้างประวัติแล้ว "+count+" รายการ"
-);
+alert("ล้างประวัติแล้ว");
 
 
 };
