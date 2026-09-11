@@ -5,293 +5,269 @@
 
 <meta charset="utf-8">
 
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>Ivyfamily Admin</title>
 
-
 <style>
+
+*{
+box-sizing:border-box;
+}
 
 body{
 font-family:sans-serif;
 background:#0b0b12;
 color:white;
 padding:20px;
+margin:0;
 }
 
-
 .card{
-
 background:#1d1d27;
 padding:20px;
 border-radius:16px;
 margin:15px 0;
-
+box-shadow:0 5px 20px rgba(0,0,0,.25);
 }
 
-
-button,input,select{
-
-padding:10px;
+button,
+input,
+select{
+padding:11px;
 margin:5px;
 border-radius:10px;
 border:none;
-
+font-size:15px;
 }
 
-
 button{
-
 background:#8b5cf6;
 color:white;
 cursor:pointer;
-
+font-weight:bold;
 }
 
+button:hover{
+background:#7c3aed;
+}
+
+input,
+select{
+background:#fff;
+color:#111;
+}
 
 canvas{
-
 display:block;
 margin:20px auto;
 background:#111;
 border-radius:50%;
-
+max-width:100%;
 }
-
-
-
 
 .player{
-
 background:#292936;
-padding:8px;
-margin:5px;
+padding:10px;
+margin:5px 0;
 border-radius:8px;
-
 }
-
-
-
-
-
-/* Banner ผู้ชนะ */
 
 #winnerBox{
-
-
 display:none;
-
 position:fixed;
-
 top:50%;
-
 left:50%;
-
 transform:translate(-50%,-50%);
-
-
 background:#222;
-
 border:3px solid #ffd700;
-
 border-radius:20px;
-
-
 padding:35px;
-
 text-align:center;
-
-
 z-index:99;
-
-
+width:min(90%,450px);
 box-shadow:0 0 30px #ffd700;
-
-
 }
-
-
 
 #winnerBox h1{
-
 color:#ffd700;
-
+margin-top:0;
 }
-
-
 
 #winnerName{
-
 font-size:35px;
-
 color:white;
-
 font-weight:bold;
-
+margin:15px 0;
 }
 
-
+#winnerItem{
+font-size:18px;
+line-height:1.7;
+}
 
 .close{
-
 background:#ff595e;
-
 }
 
+.close:hover{
+background:#dc2626;
+}
 
+#result{
+color:#ffd700;
+text-align:center;
+}
+
+.status{
+padding:10px;
+border-radius:10px;
+background:#292936;
+margin-top:10px;
+}
 
 </style>
 
-
 </head>
-
 
 
 <body>
 
 
-<h1>
-🟣 Ivyfamily Admin
-</h1>
+<h1>🟣 Ivyfamily Admin</h1>
 
 
-
-
+<!-- LOGIN -->
 
 <div class="card">
 
+<h3>🔐 เข้าสู่ระบบ Admin</h3>
 
-<h3>เข้าสู่ระบบ</h3>
-
-
-<input id="pass" placeholder="รหัสแอดมิน">
-
+<input
+id="pass"
+type="password"
+placeholder="รหัสแอดมิน"
+>
 
 <button onclick="login()">
 เข้า
 </button>
 
-
 </div>
 
 
 
-
-
+<!-- ADMIN -->
 
 <div id="admin" style="display:none">
 
 
-
-
+<!-- WHEEL -->
 
 <div class="card">
 
-
-<h2>
-🎡 Ivy Winner Wheel
-</h2>
-
+<h2>🎡 Ivy Winner Wheel</h2>
 
 
 <select id="wheelItem">
 
-
-<option>
+<option value="หลวนเฟิงลั่วหยาง">
 หลวนเฟิงลั่วหยาง
 </option>
 
-
-<option>
+<option value="ญาณแท้เชี่ยวชาญชูโจว">
 ญาณแท้เชี่ยวชาญชูโจว
 </option>
 
-
-<option>
+<option value="ญาณแท้ชูโจว">
 ญาณแท้ชูโจว
 </option>
 
-
 </select>
-
 
 
 <br>
 
 
 <button onclick="loadWheel()">
-โหลดรายชื่อ
+📋 โหลดรายชื่อ
 </button>
-
 
 
 <div id="players"></div>
 
 
+<canvas
+id="wheel"
+width="450"
+height="450">
+</canvas>
 
-<canvas id="wheel" width="450" height="450"></canvas>
 
-
-
-<button onclick="spin()">
+<button
+onclick="spin()"
+style="font-size:20px;padding:14px 30px;">
 🎡 เริ่มหมุน
 </button>
 
 
-
 <h2 id="result"></h2>
-
 
 </div>
 
 
 
-
-
-
+<!-- HISTORY -->
 
 <div class="card">
 
+<h2>📜 ประวัติผู้ได้สิทธิ์</h2>
 
-<h2>
-📜 ประวัติผู้ได้สิทธิ์
-</h2>
+
+<input
+id="searchHistory"
+placeholder="ค้นหาไอเทมหรือชื่อ"
+>
+
+
+<button onclick="searchHistory()">
+🔎 ค้นหา
+</button>
 
 
 <div id="history"></div>
 
-
 </div>
 
 
 
+<!-- CLEAR -->
 
 <div class="card">
 
+<h3>🗑 จัดการข้อมูล</h3>
 
-<button onclick="clearAll">
+<p>
+ใช้สำหรับล้างรายชื่อเพื่อทดสอบระบบ
+</p>
 
-🗑 ล้างรายชื่อ
 
+<button
+onclick="clearAll()"
+style="background:#dc2626;">
+🗑 ล้างรายชื่อทั้งหมด
 </button>
 
+</div>
+
 
 </div>
 
 
 
-
-
-</div>
-
-
-
-
-
-
-
-<!-- Banner -->
+<!-- WINNER BANNER -->
 
 <div id="winnerBox">
-
 
 <h1>
 🎉 ยินดีด้วย 🎉
@@ -304,24 +280,17 @@ background:#ff595e;
 <p id="winnerItem"></p>
 
 
-<button class="close" onclick="closeWinner()">
+<button
+class="close"
+onclick="closeWinner()">
 ปิด
 </button>
 
-
 </div>
-
-
-
-
 
 
 
 <script type="module" src="admin.js"></script>
 
 
-
-</body>
-
-
-</html>
+</
