@@ -1,348 +1,860 @@
-<!doctype html>
-<html lang="th">
+import { db } from "./firebase.js";
 
-<head>
+import {
+collection,
+onSnapshot,
+query,
+orderBy,
+addDoc,
+getDocs,
+deleteDoc,
+doc
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-<meta charset="utf-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1">
+let data=[];
 
-<title>Ivyfamily Admin</title>
+let historyData=[];
 
-<style>
+let players=[];
 
-*{
-box-sizing:border-box;
+let angle=0;
+
+let spinning=false;
+
+let selectedWinner=null;
+
+
+
+// ================= LOGIN =================
+
+window.login=function(){
+
+let pass=
+document.getElementById("pass").value;
+
+
+if(pass==="1234"){
+
+document.getElementById("admin").style.display="block";
+
+loadHistory();
+
 }
 
-body{
-font-family:sans-serif;
-background:#0b0b12;
-color:white;
-padding:20px;
-margin:0;
+else{
+
+alert("รหัสผิด");
+
 }
 
-.card{
-background:#1d1d27;
-padding:20px;
-border-radius:16px;
-margin:15px 0;
-box-shadow:0 5px 20px rgba(0,0,0,.25);
+};
+
+
+
+// ================= REALTIME BIDS =================
+
+onSnapshot(
+
+query(
+collection(db,"bids"),
+orderBy("time","asc")
+),
+
+snap=>{
+
+data=[];
+
+
+snap.forEach(d=>{
+
+let x=d.data();
+
+
+if(x.name && x.item){
+
+data.push({
+
+id:d.id,
+
+...x
+
+});
+
 }
 
-button,
-input,
-select{
-padding:12px;
-margin:5px;
-border-radius:10px;
-border:none;
-font-size:15px;
+});
+
 }
 
-button{
-background:#8b5cf6;
-color:white;
-cursor:pointer;
-font-weight:bold;
-}
-
-button:hover{
-opacity:.85;
-}
-
-input,
-select{
-background:white;
-color:#111;
-}
-
-canvas{
-display:block;
-margin:20px auto;
-background:#111;
-border-radius:50%;
-max-width:100%;
-}
-
-.player{
-background:#292936;
-padding:10px;
-margin:5px 0;
-border-radius:8px;
-}
-
-#winnerBox{
-display:none;
-position:fixed;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-background:#222;
-border:3px solid #ffd700;
-border-radius:20px;
-padding:35px;
-text-align:center;
-z-index:99;
-width:min(90%,450px);
-box-shadow:0 0 30px #ffd700;
-}
-
-#winnerBox h1{
-color:#ffd700;
-margin-top:0;
-}
-
-#winnerName{
-font-size:35px;
-color:white;
-font-weight:bold;
-margin:15px 0;
-}
-
-#winnerItem{
-font-size:18px;
-line-height:1.7;
-}
-
-.close{
-background:#ff595e;
-}
-
-.close:hover{
-background:#dc2626;
-}
-
-#result{
-color:#ffd700;
-text-align:center;
-}
-
-.status{
-padding:10px;
-border-radius:10px;
-background:#292936;
-margin-top:10px;
-}
-
-.danger{
-background:#dc2626;
-}
-
-.warning{
-background:#f59e0b;
-}
-
-</style>
-
-</head>
+);
 
 
-<body>
+
+// ================= LOAD WHEEL =================
+
+window.loadWheel=function(){
+
+let item=
+document.getElementById("wheelItem").value;
 
 
-<h1>
-🟣 Ivyfamily Admin
-</h1>
+players=[
+
+...new Set(
+
+data
+
+.filter(x=>x.item===item)
+
+.map(x=>x.name)
+
+)
+
+];
 
 
-<!-- ================= LOGIN ================= -->
+document.getElementById("players").innerHTML=
 
-<div class="card">
+players.map(x=>`
 
-<h3>🔐 เข้าสู่ระบบ Admin</h3>
+<div class="player">
 
-<input
-id="pass"
-type="password"
-placeholder="รหัสแอดมิน"
->
-
-<button onclick="login()">
-เข้า
-</button>
+👤 ${x}
 
 </div>
 
+`).join("");
 
 
-<!-- ================= ADMIN ================= -->
+if(players.length===0){
 
-<div id="admin" style="display:none">
+document.getElementById("result").innerHTML=
+"ยังไม่มีผู้ลงชื่อสำหรับไอเทมนี้";
 
-
-<!-- ================= WHEEL ================= -->
-
-<div class="card">
-
-<h2>
-🎡 Ivy Winner Wheel
-</h2>
+}
 
 
-<select id="wheelItem">
+drawWheel();
 
-<option value="หลวนเฟิงลั่วหยาง">
-หลวนเฟิงลั่วหยาง
-</option>
+};
 
-<option value="ญาณแท้เชี่ยวชาญชูโจว">
-ญาณแท้เชี่ยวชาญชูโจว
-</option>
 
-<option value="ญาณแท้ชูโจว">
-ญาณแท้ชูโจว
-</option>
 
-<option value="เสียงสวรรค์ลั่วหยาง">
-เสียงสวรรค์ลั่วหยาง
-</option>
+// ================= DRAW WHEEL =================
 
-<option value="หยกวิญญานฟ้า">
-หยกวิญญานฟ้า
-</option>
+function drawWheel(){
 
-<option value="ลายปักเมฆสูงส่ง">
-ลายปักเมฆสูงส่ง
-</option>
+let canvas=
+document.getElementById("wheel");
 
-</select>
+let ctx=
+canvas.getContext("2d");
 
+let r=
+canvas.width/2;
+
+
+ctx.clearRect(
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+
+if(players.length===0){
+
+return;
+
+}
+
+
+let colors=[
+
+"#ff595e",
+"#ffca3a",
+"#8ac926",
+"#1982c4",
+"#6a4c93",
+"#ff924c",
+"#00b4d8",
+"#f72585",
+"#43aa8b",
+"#577590"
+
+];
+
+
+let size=
+(Math.PI*2)/players.length;
+
+
+players.forEach((name,i)=>{
+
+let start=
+angle+(i*size);
+
+
+ctx.beginPath();
+
+ctx.moveTo(r,r);
+
+ctx.arc(
+r,
+r,
+r-5,
+start,
+start+size
+);
+
+ctx.fillStyle=
+colors[i%colors.length];
+
+ctx.fill();
+
+ctx.strokeStyle="#fff";
+
+ctx.lineWidth=3;
+
+ctx.stroke();
+
+
+
+ctx.save();
+
+ctx.translate(r,r);
+
+ctx.rotate(
+start+(size/2)
+);
+
+ctx.fillStyle="#fff";
+
+ctx.font="bold 16px sans-serif";
+
+ctx.textAlign="left";
+
+ctx.fillText(
+name,
+80,
+5
+);
+
+ctx.restore();
+
+});
+
+
+
+// ================= CENTER =================
+
+ctx.beginPath();
+
+ctx.arc(
+r,
+r,
+50,
+0,
+Math.PI*2
+);
+
+ctx.fillStyle="#111";
+
+ctx.fill();
+
+ctx.fillStyle="#ffd700";
+
+ctx.font="bold 22px sans-serif";
+
+ctx.textAlign="center";
+
+ctx.fillText(
+"IVY",
+r,
+r+8
+);
+
+
+
+// ================= POINTER =================
+
+ctx.beginPath();
+
+ctx.moveTo(r-25,0);
+
+ctx.lineTo(r+25,0);
+
+ctx.lineTo(r,45);
+
+ctx.closePath();
+
+ctx.fillStyle="#ffd700";
+
+ctx.fill();
+
+}
+
+
+
+// ================= SPIN =================
+
+window.spin=function(){
+
+if(spinning)return;
+
+
+if(players.length<2){
+
+alert(
+"กรุณาโหลดรายชื่อก่อน และต้องมีคนแย่งอย่างน้อย 2 คน"
+);
+
+return;
+
+}
+
+
+spinning=true;
+
+
+
+// สุ่มผู้ชนะก่อน
+
+selectedWinner=
+
+players[
+Math.floor(
+Math.random()*players.length
+)
+];
+
+
+
+let winnerIndex=
+players.indexOf(selectedWinner);
+
+
+
+let size=
+(Math.PI*2)/players.length;
+
+
+
+// ให้ช่องผู้ชนะหยุดตรงเข็มด้านบน
+
+let targetAngle=
+
+Math.PI/2
+
+-
+
+(
+winnerIndex*size
+)
+
+-
+
+(
+size/2
+);
+
+
+
+let startAngle=angle;
+
+
+
+let currentTurn=
+angle%(Math.PI*2);
+
+
+let difference=
+targetAngle-currentTurn;
+
+
+if(difference<0){
+
+difference+=Math.PI*2;
+
+}
+
+
+
+let totalRotation=
+
+(Math.PI*2*8)
+
++
+
+difference;
+
+
+
+let startTime=null;
+
+let duration=7000;
+
+
+
+function animate(time){
+
+if(!startTime){
+
+startTime=time;
+
+}
+
+
+let progress=
+(time-startTime)/duration;
+
+
+if(progress>1){
+
+progress=1;
+
+}
+
+
+let ease=
+1-Math.pow(1-progress,5);
+
+
+angle=
+startAngle+
+(totalRotation*ease);
+
+
+drawWheel();
+
+
+
+if(progress<1){
+
+requestAnimationFrame(animate);
+
+}
+
+else{
+
+angle=
+targetAngle;
+
+
+drawWheel();
+
+finishSpin();
+
+}
+
+}
+
+
+requestAnimationFrame(animate);
+
+};
+
+
+
+// ================= FINISH SPIN =================
+
+async function finishSpin(){
+
+let winner=
+selectedWinner;
+
+
+let item=
+document.getElementById("wheelItem").value;
+
+
+let winData=
+data.find(x=>
+
+x.item===item &&
+
+x.name===winner
+
+);
+
+
+document.getElementById("winnerBox")
+.style.display="block";
+
+
+document.getElementById("winnerName")
+.innerHTML=
+"🏆 "+winner;
+
+
+document.getElementById("winnerItem")
+.innerHTML=
+
+`
+
+📦 ${item}
 
 <br>
 
+📄 หน้า ${winData?.page || "-"}
 
-<button onclick="loadWheel()">
-📋 โหลดรายชื่อ
-</button>
+<br>
 
+ชิ้น ${winData?.piece || "-"}
 
-<div id="players"></div>
-
-
-<canvas
-id="wheel"
-width="450"
-height="450">
-</canvas>
+`;
 
 
-<button
-onclick="spin()"
-style="font-size:20px;padding:14px 30px;">
-🎡 เริ่มหมุน
-</button>
+
+document.getElementById("result")
+.innerHTML=
+"🎉 ผู้ได้สิทธิ์: "+winner;
 
 
-<h2 id="result"></h2>
+
+try{
+
+await addDoc(
+
+collection(db,"history"),
+
+{
+
+item:item,
+
+winner:winner,
+
+page:winData?.page || "",
+
+piece:winData?.piece || "",
+
+time:new Date().toLocaleString("th-TH")
+
+}
+
+);
+
+}
+
+catch(error){
+
+console.error(error);
+
+alert("บันทึกประวัติไม่สำเร็จ");
+
+}
+
+
+await loadHistory();
+
+
+spinning=false;
+
+selectedWinner=null;
+
+}
+
+
+
+// ================= CLOSE WINNER =================
+
+window.closeWinner=function(){
+
+document.getElementById("winnerBox")
+.style.display="none";
+
+};
+
+
+
+// ================= LOAD HISTORY =================
+
+window.loadHistory=async function(){
+
+let box=
+document.getElementById("history");
+
+
+if(!box)return;
+
+
+try{
+
+let snap=
+await getDocs(
+collection(db,"history")
+);
+
+
+historyData=[];
+
+
+snap.forEach(d=>{
+
+historyData.push({
+
+id:d.id,
+
+...d.data()
+
+});
+
+});
+
+
+historyData.sort((a,b)=>{
+
+return String(b.time)
+.localeCompare(String(a.time));
+
+});
+
+
+renderHistory(historyData);
+
+}
+
+catch(error){
+
+console.error(error);
+
+box.innerHTML=
+"โหลดประวัติไม่สำเร็จ";
+
+}
+
+};
+
+
+
+// ================= RENDER HISTORY =================
+
+function renderHistory(list){
+
+let box=
+document.getElementById("history");
+
+
+if(!box)return;
+
+
+if(list.length===0){
+
+box.innerHTML=
+
+`
+
+<div class="player">
+
+ยังไม่มีประวัติ
 
 </div>
 
+`;
+
+return;
+
+}
 
 
-<!-- ================= HISTORY ================= -->
+box.innerHTML=
 
-<div class="card">
+list.map(x=>`
 
-<h2>
-📜 ประวัติผู้ได้สิทธิ์
-</h2>
+<div class="player">
 
+📦 ${x.item || "-"}
 
-<input
-id="searchHistory"
-placeholder="ค้นหาไอเทมหรือชื่อ"
->
+<br>
 
+🏆 ${x.winner || "-"}
 
-<button onclick="searchHistory()">
-🔎 ค้นหา
-</button>
+<br>
 
+📄 หน้า ${x.page || "-"}
 
-<button onclick="loadHistory()">
-🔄 แสดงทั้งหมด
-</button>
+<br>
 
+ชิ้น ${x.piece || "-"}
 
-<div id="history"></div>
+<br>
 
-</div>
-
-
-
-<!-- ================= CLEAR ================= -->
-
-<div class="card">
-
-<h3>
-🗑 จัดการข้อมูล
-</h3>
-
-
-<p>
-ใช้สำหรับล้างข้อมูลเพื่อทดสอบระบบ
-</p>
-
-
-<button
-onclick="clearAll()"
-class="danger">
-
-🗑 ล้างรายชื่อประมูล
-
-</button>
-
-
-<button
-onclick="clearHistory()"
-class="warning">
-
-📜 ล้างประวัติผู้ชนะ
-
-</button>
+⏰ ${x.time || "-"}
 
 </div>
 
+`).join("");
 
-</div>
-
-
-
-<!-- ================= WINNER BANNER ================= -->
-
-<div id="winnerBox">
-
-<h1>
-🎉 ยินดีด้วย 🎉
-</h1>
-
-
-<div id="winnerName"></div>
-
-
-<div id="winnerItem"></div>
-
-
-<button
-class="close"
-onclick="closeWinner()">
-
-ปิด
-
-</button>
-
-</div>
+}
 
 
 
-<script
-type="module"
-src="admin.js">
-</script>
+// ================= SEARCH HISTORY =================
+
+window.searchHistory=function(){
+
+let input=
+document.getElementById("searchHistory");
 
 
-</body>
+let key=
+input.value.trim().toLowerCase();
 
-</html>
+
+if(key===""){
+
+renderHistory(historyData);
+
+return;
+
+}
+
+
+let result=
+historyData.filter(x=>{
+
+let item=
+String(x.item || "")
+.toLowerCase();
+
+let winner=
+String(x.winner || "")
+.toLowerCase();
+
+
+return item.includes(key)
+||
+winner.includes(key);
+
+});
+
+
+renderHistory(result);
+
+};
+
+
+
+// ================= CLEAR BIDS =================
+
+window.clearAll=async function(){
+
+if(!confirm(
+"ล้างรายชื่อผู้ประมูลทั้งหมด?"
+)){
+
+return;
+
+}
+
+
+try{
+
+let snap=
+await getDocs(
+collection(db,"bids")
+);
+
+
+let count=0;
+
+
+for(const x of snap.docs){
+
+await deleteDoc(
+doc(db,"bids",x.id)
+);
+
+count++;
+
+}
+
+
+alert(
+"ล้างรายชื่อแล้วทั้งหมด "
++
+count
++
+" รายการ"
+);
+
+}
+
+catch(error){
+
+console.error(error);
+
+alert(
+"ล้างรายชื่อไม่สำเร็จ"
+);
+
+}
+
+};
+
+
+
+// ================= CLEAR HISTORY =================
+
+window.clearHistory=async function(){
+
+if(!confirm(
+"ล้างประวัติผู้ชนะทั้งหมด?"
+)){
+
+return;
+
+}
+
+
+try{
+
+let snap=
+await getDocs(
+collection(db,"history")
+);
+
+
+let count=0;
+
+
+for(const x of snap.docs){
+
+await deleteDoc(
+doc(db,"history",x.id)
+);
+
+count++;
+
+}
+
+
+historyData=[];
+
+
+renderHistory([]);
+
+
+alert(
+"ล้างประวัติแล้วทั้งหมด "
++
+count
++
+" รายการ"
+);
+
+}
+
+catch(error){
+
+console.error(error);
+
+alert(
+"ล้างประวัติไม่สำเร็จ"
+);
+
+}
+
+};
