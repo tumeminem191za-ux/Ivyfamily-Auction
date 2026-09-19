@@ -1,520 +1,525 @@
 import { db } from "./firebase.js";
 
 import {
- collection,
- addDoc,
- onSnapshot,
- query,
- orderBy
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+let data = [];
 
 
-let data=[];
+// =========================
+// รายการไอเทมทั้งหมด
+// =========================
 
+const ITEMS = [
+  "หลวนเฟิงลั่วหยาง",
+  "ญาณแท้เชี่ยวชาญชูโจว",
+  "ญาณแท้ชูโจว",
+  "เสียงสวรรค์ลั่วหยาง",
+  "หยกวิญญานฟ้า",
+  "ลายปักเมฆสูงส่ง",
 
-// ======================
-// รายการไอเทม
-// ======================
-
-const ITEMS=[
-
-"หลวนเฟิงลั่วหยาง",
-
-"ญาณแท้เชี่ยวชาญชูโจว",
-
-"ญาณแท้ชูโจว",
-
-"เสียงสวรรค์ลั่วหยาง",
-
-"หยกวิญญานฟ้า",
-
-"ลายปักเมฆสูงส่ง"
-
+  // เพิ่มใหม่
+  "ญาณแท้เชี่ยวชาญต้าหลี่",
+  "ทำนายสู่จง",
+  "ญานแท้ต้าหลี่"
 ];
 
 
+// =========================
+// เวลา
+// =========================
 
-// ======================
-// เช็กเวลา
-// ======================
+function status() {
 
-function status(){
+  const now = new Date();
 
-let now=new Date();
+  const time =
+    now.getHours() * 60 +
+    now.getMinutes();
 
-let time=
-now.getHours()*60+
-now.getMinutes();
+  const box =
+    document.getElementById("status");
 
-
-let box=document.getElementById("status");
-
-if(!box)return;
-
+  if (!box) return;
 
 
-if(time>=1260 && time<1270){
+  if (
+    time >= 1260 &&
+    time < 1270
+  ) {
 
-box.innerHTML="🟢 เปิดรับชื่อ";
+    box.innerHTML =
+      "🟢 เปิดรับชื่อ";
+
+  }
+
+  else if (
+    time >= 1270 &&
+    time < 1300
+  ) {
+
+    box.innerHTML =
+      "🟡 กำลังประมูล";
+
+  }
+
+  else {
+
+    box.innerHTML =
+      "🔴 ปิดรับชื่อ";
+
+  }
 
 }
 
-else if(time>=1270 && time<1300){
-
-box.innerHTML="🟡 กำลังประมูล";
-
-}
-
-else{
-
-box.innerHTML="🔴 ปิดรับชื่อ";
-
-}
-
-}
-
-
-setInterval(status,1000);
+setInterval(status, 1000);
 
 status();
 
 
+// =========================
+// โหลดรายการไอเทม
+// =========================
+
+function loadItems() {
+
+  const select =
+    document.getElementById("item");
+
+  if (!select) return;
 
 
-// ======================
-// ใส่รายการไอเทมลง Select
-// ======================
-
-function loadItems(){
-
-let select=
-document.getElementById("item");
+  select.innerHTML = "";
 
 
-if(!select)return;
+  ITEMS.forEach(item => {
 
+    const option =
+      document.createElement("option");
 
-select.innerHTML="";
+    option.value = item;
 
+    option.textContent = item;
 
-ITEMS.forEach(item=>{
+    select.appendChild(option);
 
-let option=
-document.createElement("option");
-
-
-option.value=item;
-
-option.textContent=item;
-
-
-select.appendChild(option);
-
-});
+  });
 
 }
-
 
 loadItems();
 
 
+// =========================
+// โหลดหน้า 1 - 15
+// =========================
+
+function loadPages() {
+
+  const select =
+    document.getElementById("page");
+
+  if (!select) return;
 
 
+  select.innerHTML = "";
 
-// ======================
+
+  for (
+    let i = 1;
+    i <= 15;
+    i++
+  ) {
+
+    const option =
+      document.createElement("option");
+
+    option.value =
+      "หน้า " + i;
+
+    option.textContent =
+      "หน้า " + i;
+
+    select.appendChild(option);
+
+  }
+
+}
+
+loadPages();
+
+
+// =========================
 // ลงชื่อ
-// ======================
+// =========================
 
-window.add=async function(){
+window.add = async function () {
+
+  const x = {
+
+    name:
+      document
+        .getElementById("name")
+        .value
+        .trim(),
+
+    item:
+      document
+        .getElementById("item")
+        .value,
+
+    page:
+      document
+        .getElementById("page")
+        .value,
+
+    piece:
+      document
+        .getElementById("piece")
+        .value
+        .trim(),
+
+    time:
+      Date.now(),
+
+    registerTime:
+      new Date()
+        .toLocaleTimeString("th-TH")
+
+  };
 
 
-let x={
+  // =========================
+  // ตรวจชื่อ
+  // =========================
+
+  if (x.name === "") {
+
+    alert(
+      "กรุณาใส่ชื่อ"
+    );
+
+    return;
+
+  }
 
 
-name:
-document.getElementById("name").value.trim(),
+  // =========================
+  // ตรวจชิ้น
+  // =========================
+
+  if (x.piece === "") {
+
+    alert(
+      "กรุณาใส่เลขชิ้น"
+    );
+
+    return;
+
+  }
 
 
-item:
-document.getElementById("item").value,
+  // =========================
+  // กันลงรายการซ้ำ
+  // =========================
+
+  const same =
+    data.find(a =>
+
+      a.name === x.name &&
+
+      a.item === x.item &&
+
+      a.page === x.page &&
+
+      a.piece === x.piece
+
+    );
 
 
-page:
-document.getElementById("page").value,
+  if (same) {
+
+    alert(
+      "ลงรายการนี้แล้ว"
+    );
+
+    return;
+
+  }
 
 
-piece:
-document.getElementById("piece").value.trim(),
+  // =========================
+  // บันทึก Firebase
+  // =========================
+
+  try {
+
+    await addDoc(
+      collection(db, "bids"),
+      x
+    );
 
 
-time:Date.now(),
+    alert(
+      "ลงชื่อแล้ว"
+    );
 
 
-registerTime:
-new Date().toLocaleTimeString("th-TH")
+    document
+      .getElementById("name")
+      .value = "";
 
 
+    document
+      .getElementById("piece")
+      .value = "";
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "ลงชื่อไม่สำเร็จ กรุณาลองใหม่"
+    );
+
+  }
 
 };
 
 
-
-if(x.name==""){
-
-alert("กรุณาใส่ชื่อ");
-
-return;
-
-}
-
-
-
-if(x.piece==""){
-
-alert("กรุณาใส่เลขชิ้น");
-
-return;
-
-}
-
-
-
-
-// ======================
-// ป้องกันลงรายการซ้ำ
-// ======================
-
-let same=data.find(a=>
-
-a.name==x.name &&
-
-a.item==x.item &&
-
-a.page==x.page &&
-
-a.piece==x.piece
-
-);
-
-
-
-if(same){
-
-alert("ลงรายการนี้แล้ว");
-
-return;
-
-}
-
-
-
-
-// ======================
-// บันทึก Firebase
-// ======================
-
-try{
-
-
-await addDoc(
-
-collection(db,"bids"),
-
-x
-
-);
-
-
-alert("ลงชื่อแล้ว");
-
-
-document.getElementById("name").value="";
-
-document.getElementById("piece").value="";
-
-
-}
-
-catch(error){
-
-console.error(error);
-
-alert("ลงชื่อไม่สำเร็จ กรุณาลองใหม่");
-
-}
-
-
-};
-
-
-
-
-
-// ======================
-// realtime
-// ======================
+// =========================
+// REALTIME FIRESTORE
+// =========================
 
 onSnapshot(
 
-query(
-collection(db,"bids"),
-orderBy("time","asc")
-),
+  query(
+    collection(db, "bids"),
+    orderBy("time", "asc")
+  ),
 
-snap=>{
+  snap => {
 
-
-data=[];
-
-
-snap.forEach(doc=>{
+    data = [];
 
 
-data.push({
+    snap.forEach(doc => {
 
-id:doc.id,
+      data.push({
 
-...doc.data()
+        id: doc.id,
 
-});
+        ...doc.data()
 
+      });
 
-});
-
-
-render();
+    });
 
 
-}
+    render();
+
+  }
 
 );
 
 
+// =========================
+// แสดงรายชื่อ
+// =========================
+
+function render() {
+
+  const list =
+    document.getElementById("list");
+
+  if (!list) return;
 
 
+  const count =
+    document.getElementById("count");
 
 
-// ======================
-// แสดงผล
-// ======================
+  if (count) {
 
-function render(){
+    count.innerHTML =
+      data.length;
 
-
-let list=
-document.getElementById("list");
+  }
 
 
-if(!list)return;
+  const people =
+    document.getElementById("people");
 
 
+  if (people) {
 
-// ======================
-// จำนวนรายการ
-// ======================
+    const names = [
+      ...new Set(
+        data.map(
+          x => x.name
+        )
+      )
+    ];
 
-let count=
-document.getElementById("count");
+
+    people.innerHTML =
+      names.length;
+
+  }
 
 
-if(count){
+  // =========================
+  // แยกตามไอเทม
+  // =========================
 
-count.innerHTML=data.length;
+  const group = {};
+
+
+  data.forEach(x => {
+
+    if (!group[x.item]) {
+
+      group[x.item] = [];
+
+    }
+
+    group[x.item].push(x);
+
+  });
+
+
+  list.innerHTML =
+    Object.keys(group)
+      .map(item => {
+
+        return `
+
+          <div class="item">
+
+            <h3>
+              📦 ${item}
+            </h3>
+
+            ${group[item]
+              .map(x => `
+
+                <div>
+
+                  👤
+                  <span class="name">
+                    ${x.name}
+                  </span>
+
+                  <br>
+
+                  📄 ${x.page}
+                  |
+                  ชิ้น ${x.piece}
+
+                  <br>
+
+                  ⏰
+                  ${x.registerTime || "-"}
+
+                </div>
+
+                <hr>
+
+              `)
+              .join("")}
+
+          </div>
+
+        `;
+
+      })
+      .join("");
 
 }
 
 
+// =========================
+// ดูรายการของตัวเอง
+// =========================
 
-// ======================
-// จำนวนคน
-// ======================
+window.showMyList = function () {
 
-let people=
-document.getElementById("people");
+  const n =
+    document
+      .getElementById("myname")
+      .value
+      .trim();
 
 
-if(people){
+  if (n === "") {
 
-let names=[
+    alert(
+      "กรุณาใส่ชื่อ"
+    );
 
-...new Set(
+    return;
 
-data.map(x=>x.name)
+  }
 
-)
 
-];
+  const a =
+    data.filter(
+      x => x.name === n
+    );
 
 
-people.innerHTML=names.length;
+  const box =
+    document.getElementById(
+      "mylist"
+    );
 
-}
 
+  if (a.length === 0) {
 
+    box.innerHTML = `
 
+      <div class="item">
 
-// ======================
-// แยกตามไอเทม
-// ======================
+        ไม่พบรายการของชื่อ
+        <strong>${n}</strong>
 
-let group={};
+      </div>
 
+    `;
 
+    return;
 
-data.forEach(x=>{
+  }
 
 
-if(!group[x.item]){
+  box.innerHTML =
+    a.map(x => `
 
-group[x.item]=[];
+      <div class="item">
 
-}
+        📦 ${x.item}
 
+        <br>
 
-group[x.item].push(x);
+        📄 ${x.page}
 
+        |
+        ชิ้น ${x.piece}
 
-});
+        <br>
 
+        ⏰
+        ${x.registerTime || "-"}
 
+      </div>
 
-
-
-list.innerHTML=
-
-Object.keys(group).map(item=>{
-
-
-return `
-
-<div class="item">
-
-
-<h3>
-📦 ${item}
-</h3>
-
-
-${
-group[item].map(x=>`
-
-<div>
-
-👤
-
-<span class="name">
-${x.name}
-</span>
-
-<br>
-
-📄 ${x.page}
-
-| ชิ้น ${x.piece}
-
-<br>
-
-⏰ ${x.registerTime || "-"}
-
-</div>
-
-
-<hr>
-
-`).join("")
-}
-
-
-</div>
-
-`;
-
-
-}).join("");
-
-
-
-}
-
-
-
-
-
-// ======================
-// ดูรายการของฉัน
-// ======================
-
-window.showMyList=function(){
-
-
-let n=
-document.getElementById("myname").value.trim();
-
-
-
-if(n==""){
-
-alert("กรุณาใส่ชื่อ");
-
-return;
-
-}
-
-
-
-let a=
-data.filter(x=>x.name==n);
-
-
-
-let box=
-document.getElementById("mylist");
-
-
-
-if(a.length===0){
-
-box.innerHTML=`
-
-<div class="item">
-
-ไม่พบรายการของชื่อ
-
-<strong>${n}</strong>
-
-</div>
-
-`;
-
-return;
-
-}
-
-
-
-box.innerHTML=
-
-a.map(x=>`
-
-<div class="item">
-
-📦 ${x.item}
-
-<br>
-
-${x.page}
-
-| ชิ้น ${x.piece}
-
-<br>
-
-⏰ ${x.registerTime || "-"}
-
-</div>
-
-`).join("");
-
-
+    `)
+    .join("");
 
 };
