@@ -17,7 +17,6 @@ let players = [];
 
 let angle = 0;
 let spinning = false;
-let selectedWinner = null;
 
 
 // =========================
@@ -26,7 +25,7 @@ let selectedWinner = null;
 
 window.login = function () {
 
-  let pass = document.getElementById("pass").value;
+  const pass = document.getElementById("pass").value;
 
   if (pass === "1234") {
 
@@ -59,7 +58,7 @@ onSnapshot(
 
     snap.forEach(d => {
 
-      let x = d.data();
+      const x = d.data();
 
       if (x.name && x.item) {
 
@@ -82,7 +81,8 @@ onSnapshot(
 
 window.loadWheel = function () {
 
-  let item = document.getElementById("wheelItem").value;
+  const item =
+    document.getElementById("wheelItem").value;
 
   players = [
     ...new Set(
@@ -92,9 +92,14 @@ window.loadWheel = function () {
     )
   ];
 
+
   document.getElementById("players").innerHTML =
     players
-      .map(x => `<div class="player">👤 ${x}</div>`)
+      .map(name => `
+        <div class="player">
+          👤 ${name}
+        </div>
+      `)
       .join("");
 
 
@@ -111,6 +116,7 @@ window.loadWheel = function () {
   }
 
 
+  // รีเซ็ตวงล้อ
   angle = 0;
 
   drawWheel();
@@ -124,11 +130,15 @@ window.loadWheel = function () {
 
 function drawWheel() {
 
-  let canvas = document.getElementById("wheel");
+  const canvas =
+    document.getElementById("wheel");
 
-  let ctx = canvas.getContext("2d");
+  const ctx =
+    canvas.getContext("2d");
 
-  let r = canvas.width / 2;
+  const r =
+    canvas.width / 2;
+
 
   ctx.clearRect(
     0,
@@ -141,7 +151,7 @@ function drawWheel() {
   if (players.length === 0) return;
 
 
-  let colors = [
+  const colors = [
     "#ff595e",
     "#ffca3a",
     "#8ac926",
@@ -155,20 +165,20 @@ function drawWheel() {
   ];
 
 
-  let size =
+  const size =
     (Math.PI * 2) /
     players.length;
 
 
   players.forEach((name, i) => {
 
-    let start =
+    const start =
       angle +
       (i * size);
 
 
     // =========================
-    // SEGMENT
+    // ช่องวงล้อ
     // =========================
 
     ctx.beginPath();
@@ -188,7 +198,6 @@ function drawWheel() {
 
     ctx.fill();
 
-
     ctx.strokeStyle = "#fff";
 
     ctx.lineWidth = 3;
@@ -197,7 +206,7 @@ function drawWheel() {
 
 
     // =========================
-    // NAME
+    // ชื่อ
     // =========================
 
     ctx.save();
@@ -205,8 +214,7 @@ function drawWheel() {
     ctx.translate(r, r);
 
     ctx.rotate(
-      start +
-      (size / 2)
+      start + (size / 2)
     );
 
     ctx.fillStyle = "#fff";
@@ -228,7 +236,7 @@ function drawWheel() {
 
 
   // =========================
-  // CENTER
+  // ตรงกลาง
   // =========================
 
   ctx.beginPath();
@@ -261,7 +269,7 @@ function drawWheel() {
 
 
   // =========================
-  // POINTER
+  // เข็มด้านบน
   // =========================
 
   ctx.beginPath();
@@ -291,6 +299,96 @@ function drawWheel() {
 
 
 // =========================
+// NORMALIZE ANGLE
+// =========================
+
+function normalizeAngle(value) {
+
+  const full =
+    Math.PI * 2;
+
+  value =
+    value % full;
+
+  if (value < 0) {
+
+    value += full;
+
+  }
+
+  return value;
+
+}
+
+
+// =========================
+// FIND PLAYER UNDER POINTER
+// =========================
+
+function getWinnerFromPointer() {
+
+  if (players.length === 0) {
+
+    return null;
+
+  }
+
+
+  const size =
+    (Math.PI * 2) /
+    players.length;
+
+
+  /*
+   * เข็มอยู่ด้านบน
+   * = -90 องศา
+   */
+
+  const pointerAngle =
+    -Math.PI / 2;
+
+
+  /*
+   * หามุมของเข็ม
+   * เมื่อเทียบกับวงล้อที่หมุนอยู่
+   */
+
+  const relativeAngle =
+    normalizeAngle(
+      pointerAngle - angle
+    );
+
+
+  /*
+   * หา segment ที่เข็มอยู่
+   */
+
+  let winnerIndex =
+    Math.floor(
+      relativeAngle / size
+    );
+
+
+  /*
+   * กันกรณี floating point
+   */
+
+  if (
+    winnerIndex < 0 ||
+    winnerIndex >= players.length
+  ) {
+
+    winnerIndex = 0;
+
+  }
+
+
+  return players[winnerIndex];
+
+}
+
+
+// =========================
 // SPIN
 // =========================
 
@@ -313,76 +411,46 @@ window.spin = function () {
   spinning = true;
 
 
-  // =========================
-  // RANDOM WINNER
-  // =========================
-
-  selectedWinner =
-    players[
-      Math.floor(
-        Math.random() *
-        players.length
-      )
-    ];
+  /*
+   * รอบนี้จะไม่สุ่มชื่อผู้ชนะก่อน
+   *
+   * สุ่มแค่ตำแหน่งที่วงล้อจะหยุด
+   *
+   * จากนั้นค่อยดูว่าเข็มชี้ใคร
+   */
 
 
-  let winnerIndex =
-    players.indexOf(
-      selectedWinner
-    );
+  const fullTurn =
+    Math.PI * 2;
 
 
-  let size =
-    (Math.PI * 2) /
-    players.length;
+  const randomStop =
+    Math.random() * fullTurn;
 
 
-  // =========================
-  // จุดที่ "กลางช่องผู้ชนะ"
-  // ต้องตรงกับเข็มด้านบน
-  // =========================
+  /*
+   * หมุนอย่างน้อย 8 รอบ
+   */
 
-  let targetAngle =
-    (-Math.PI / 2)
-    -
-    (winnerIndex * size)
-    -
-    (size / 2);
+  const totalRotation =
+    (fullTurn * 8) +
+    randomStop;
 
 
-  let startAngle = angle;
+  const startAngle =
+    angle;
 
 
-  let currentTurn =
-    angle %
-    (Math.PI * 2);
-
-
-  let difference =
-    targetAngle -
-    currentTurn;
-
-
-  if (difference < 0) {
-
-    difference +=
-      Math.PI * 2;
-
-  }
-
-
-  // หมุน 8 รอบก่อนหยุด
-  let totalRotation =
-    (Math.PI * 2 * 8)
-    +
-    difference;
+  const finalAngle =
+    startAngle +
+    totalRotation;
 
 
   let startTime = null;
 
 
   // 7 วินาที
-  let duration = 7000;
+  const duration = 7000;
 
 
   function animate(time) {
@@ -406,8 +474,12 @@ window.spin = function () {
     }
 
 
-    // ease out
-    let ease =
+    /*
+     * Ease Out
+     * ช่วงท้ายหมุนช้าลง
+     */
+
+    const ease =
       1 -
       Math.pow(
         1 - progress,
@@ -431,13 +503,12 @@ window.spin = function () {
 
     } else {
 
-      // =========================
-      // บังคับตำแหน่งสุดท้าย
-      // =========================
+      /*
+       * บังคับตำแหน่งสุดท้าย
+       */
 
       angle =
-        startAngle +
-        totalRotation;
+        finalAngle;
 
 
       drawWheel();
@@ -463,18 +534,38 @@ window.spin = function () {
 
 async function finishSpin() {
 
-  let winner =
-    selectedWinner;
+  /*
+   * สำคัญมาก
+   *
+   * ไม่สุ่มชื่อใหม่
+   *
+   * อ่านจากตำแหน่งเข็มจริง
+   */
+
+  const winner =
+    getWinnerFromPointer();
 
 
-  let item =
+  const item =
     document.getElementById(
       "wheelItem"
     ).value;
 
 
-  // หาข้อมูลของผู้ชนะ
-  let winData =
+  if (!winner) {
+
+    spinning = false;
+
+    return;
+
+  }
+
+
+  /*
+   * หาข้อมูลของผู้ชนะ
+   */
+
+  const winData =
     data.find(
       x =>
         x.item === item &&
@@ -483,7 +574,7 @@ async function finishSpin() {
 
 
   // =========================
-  // WINNER POPUP
+  // POPUP
   // =========================
 
   document.getElementById(
@@ -528,7 +619,10 @@ async function finishSpin() {
   try {
 
     await addDoc(
-      collection(db, "history"),
+      collection(
+        db,
+        "history"
+      ),
       {
 
         item: item,
@@ -549,6 +643,7 @@ async function finishSpin() {
       }
     );
 
+
   } catch (error) {
 
     console.error(error);
@@ -564,8 +659,6 @@ async function finishSpin() {
 
 
   spinning = false;
-
-  selectedWinner = null;
 
 }
 
@@ -584,12 +677,12 @@ window.closeWinner = function () {
 
 
 // =========================
-// HISTORY
+// LOAD HISTORY
 // =========================
 
 window.loadHistory = async function () {
 
-  let box =
+  const box =
     document.getElementById(
       "history"
     );
@@ -600,7 +693,7 @@ window.loadHistory = async function () {
 
   try {
 
-    let snap =
+    const snap =
       await getDocs(
         collection(
           db,
@@ -657,7 +750,7 @@ window.loadHistory = async function () {
 
 function renderHistory(list) {
 
-  let box =
+  const box =
     document.getElementById(
       "history"
     );
@@ -716,13 +809,13 @@ function renderHistory(list) {
 
 window.searchHistory = function () {
 
-  let input =
+  const input =
     document.getElementById(
       "searchHistory"
     );
 
 
-  let key =
+  const key =
     input.value
       .trim()
       .toLowerCase();
@@ -739,16 +832,16 @@ window.searchHistory = function () {
   }
 
 
-  let result =
+  const result =
     historyData.filter(x => {
 
-      let item =
+      const item =
         String(
           x.item || ""
         ).toLowerCase();
 
 
-      let winner =
+      const winner =
         String(
           x.winner || ""
         ).toLowerCase();
@@ -784,7 +877,7 @@ window.clearAll = async function () {
 
   try {
 
-    let snap =
+    const snap =
       await getDocs(
         collection(
           db,
@@ -849,7 +942,7 @@ async function () {
 
   try {
 
-    let snap =
+    const snap =
       await getDocs(
         collection(
           db,
