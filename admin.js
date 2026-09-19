@@ -1,860 +1,904 @@
 import { db } from "./firebase.js";
 
 import {
-collection,
-onSnapshot,
-query,
-orderBy,
-addDoc,
-getDocs,
-deleteDoc,
-doc
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+let data = [];
+let historyData = [];
+let players = [];
+
+let angle = 0;
+let spinning = false;
+let selectedWinner = null;
 
 
-let data=[];
+// =========================
+// LOGIN
+// =========================
 
-let historyData=[];
+window.login = function () {
 
-let players=[];
+  let pass = document.getElementById("pass").value;
 
-let angle=0;
+  if (pass === "1234") {
 
-let spinning=false;
+    document.getElementById("admin").style.display = "block";
 
-let selectedWinner=null;
+    loadHistory();
 
+  } else {
 
+    alert("รหัสผิด");
 
-// ================= LOGIN =================
-
-window.login=function(){
-
-let pass=
-document.getElementById("pass").value;
-
-
-if(pass==="1234"){
-
-document.getElementById("admin").style.display="block";
-
-loadHistory();
-
-}
-
-else{
-
-alert("รหัสผิด");
-
-}
+  }
 
 };
 
 
-
-// ================= REALTIME BIDS =================
+// =========================
+// REALTIME BIDS
+// =========================
 
 onSnapshot(
+  query(
+    collection(db, "bids"),
+    orderBy("time", "asc")
+  ),
 
-query(
-collection(db,"bids"),
-orderBy("time","asc")
-),
+  snap => {
 
-snap=>{
+    data = [];
 
-data=[];
+    snap.forEach(d => {
 
+      let x = d.data();
 
-snap.forEach(d=>{
+      if (x.name && x.item) {
 
-let x=d.data();
+        data.push({
+          id: d.id,
+          ...x
+        });
 
+      }
 
-if(x.name && x.item){
+    });
 
-data.push({
-
-id:d.id,
-
-...x
-
-});
-
-}
-
-});
-
-}
-
+  }
 );
 
 
+// =========================
+// LOAD WHEEL
+// =========================
 
-// ================= LOAD WHEEL =================
+window.loadWheel = function () {
 
-window.loadWheel=function(){
+  let item = document.getElementById("wheelItem").value;
 
-let item=
-document.getElementById("wheelItem").value;
+  players = [
+    ...new Set(
+      data
+        .filter(x => x.item === item)
+        .map(x => x.name)
+    )
+  ];
 
-
-players=[
-
-...new Set(
-
-data
-
-.filter(x=>x.item===item)
-
-.map(x=>x.name)
-
-)
-
-];
+  document.getElementById("players").innerHTML =
+    players
+      .map(x => `<div class="player">👤 ${x}</div>`)
+      .join("");
 
 
-document.getElementById("players").innerHTML=
+  if (players.length === 0) {
 
-players.map(x=>`
+    document.getElementById("result").innerHTML =
+      "ยังไม่มีผู้ลงชื่อสำหรับไอเทมนี้";
 
-<div class="player">
+  } else {
 
-👤 ${x}
+    document.getElementById("result").innerHTML =
+      `มีผู้แย่งสิทธิ์ ${players.length} คน`;
 
-</div>
-
-`).join("");
-
-
-if(players.length===0){
-
-document.getElementById("result").innerHTML=
-"ยังไม่มีผู้ลงชื่อสำหรับไอเทมนี้";
-
-}
+  }
 
 
-drawWheel();
+  angle = 0;
+
+  drawWheel();
 
 };
 
 
+// =========================
+// DRAW WHEEL
+// =========================
 
-// ================= DRAW WHEEL =================
+function drawWheel() {
 
-function drawWheel(){
+  let canvas = document.getElementById("wheel");
 
-let canvas=
-document.getElementById("wheel");
+  let ctx = canvas.getContext("2d");
 
-let ctx=
-canvas.getContext("2d");
+  let r = canvas.width / 2;
 
-let r=
-canvas.width/2;
-
-
-ctx.clearRect(
-0,
-0,
-canvas.width,
-canvas.height
-);
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
 
 
-if(players.length===0){
+  if (players.length === 0) return;
 
-return;
+
+  let colors = [
+    "#ff595e",
+    "#ffca3a",
+    "#8ac926",
+    "#1982c4",
+    "#6a4c93",
+    "#ff924c",
+    "#00b4d8",
+    "#f72585",
+    "#43aa8b",
+    "#577590"
+  ];
+
+
+  let size =
+    (Math.PI * 2) /
+    players.length;
+
+
+  players.forEach((name, i) => {
+
+    let start =
+      angle +
+      (i * size);
+
+
+    // =========================
+    // SEGMENT
+    // =========================
+
+    ctx.beginPath();
+
+    ctx.moveTo(r, r);
+
+    ctx.arc(
+      r,
+      r,
+      r - 5,
+      start,
+      start + size
+    );
+
+    ctx.fillStyle =
+      colors[i % colors.length];
+
+    ctx.fill();
+
+
+    ctx.strokeStyle = "#fff";
+
+    ctx.lineWidth = 3;
+
+    ctx.stroke();
+
+
+    // =========================
+    // NAME
+    // =========================
+
+    ctx.save();
+
+    ctx.translate(r, r);
+
+    ctx.rotate(
+      start +
+      (size / 2)
+    );
+
+    ctx.fillStyle = "#fff";
+
+    ctx.font =
+      "bold 16px sans-serif";
+
+    ctx.textAlign = "left";
+
+    ctx.fillText(
+      name,
+      80,
+      5
+    );
+
+    ctx.restore();
+
+  });
+
+
+  // =========================
+  // CENTER
+  // =========================
+
+  ctx.beginPath();
+
+  ctx.arc(
+    r,
+    r,
+    50,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fillStyle = "#111";
+
+  ctx.fill();
+
+
+  ctx.fillStyle = "#ffd700";
+
+  ctx.font =
+    "bold 22px sans-serif";
+
+  ctx.textAlign = "center";
+
+  ctx.fillText(
+    "IVY",
+    r,
+    r + 8
+  );
+
+
+  // =========================
+  // POINTER
+  // =========================
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    r - 25,
+    0
+  );
+
+  ctx.lineTo(
+    r + 25,
+    0
+  );
+
+  ctx.lineTo(
+    r,
+    45
+  );
+
+  ctx.closePath();
+
+  ctx.fillStyle = "#ffd700";
+
+  ctx.fill();
 
 }
 
 
-let colors=[
+// =========================
+// SPIN
+// =========================
 
-"#ff595e",
-"#ffca3a",
-"#8ac926",
-"#1982c4",
-"#6a4c93",
-"#ff924c",
-"#00b4d8",
-"#f72585",
-"#43aa8b",
-"#577590"
+window.spin = function () {
 
-];
+  if (spinning) return;
 
 
-let size=
-(Math.PI*2)/players.length;
+  if (players.length < 2) {
 
+    alert(
+      "กรุณาโหลดรายชื่อก่อน และต้องมีคนแย่งอย่างน้อย 2 คน"
+    );
 
-players.forEach((name,i)=>{
+    return;
 
-let start=
-angle+(i*size);
+  }
 
 
-ctx.beginPath();
+  spinning = true;
 
-ctx.moveTo(r,r);
 
-ctx.arc(
-r,
-r,
-r-5,
-start,
-start+size
-);
+  // =========================
+  // RANDOM WINNER
+  // =========================
 
-ctx.fillStyle=
-colors[i%colors.length];
+  selectedWinner =
+    players[
+      Math.floor(
+        Math.random() *
+        players.length
+      )
+    ];
 
-ctx.fill();
 
-ctx.strokeStyle="#fff";
+  let winnerIndex =
+    players.indexOf(
+      selectedWinner
+    );
 
-ctx.lineWidth=3;
 
-ctx.stroke();
+  let size =
+    (Math.PI * 2) /
+    players.length;
 
 
+  // =========================
+  // จุดที่ "กลางช่องผู้ชนะ"
+  // ต้องตรงกับเข็มด้านบน
+  // =========================
 
-ctx.save();
+  let targetAngle =
+    (-Math.PI / 2)
+    -
+    (winnerIndex * size)
+    -
+    (size / 2);
 
-ctx.translate(r,r);
 
-ctx.rotate(
-start+(size/2)
-);
+  let startAngle = angle;
 
-ctx.fillStyle="#fff";
 
-ctx.font="bold 16px sans-serif";
+  let currentTurn =
+    angle %
+    (Math.PI * 2);
 
-ctx.textAlign="left";
 
-ctx.fillText(
-name,
-80,
-5
-);
+  let difference =
+    targetAngle -
+    currentTurn;
 
-ctx.restore();
 
-});
+  if (difference < 0) {
 
+    difference +=
+      Math.PI * 2;
 
+  }
 
-// ================= CENTER =================
 
-ctx.beginPath();
+  // หมุน 8 รอบก่อนหยุด
+  let totalRotation =
+    (Math.PI * 2 * 8)
+    +
+    difference;
 
-ctx.arc(
-r,
-r,
-50,
-0,
-Math.PI*2
-);
 
-ctx.fillStyle="#111";
+  let startTime = null;
 
-ctx.fill();
 
-ctx.fillStyle="#ffd700";
+  // 7 วินาที
+  let duration = 7000;
 
-ctx.font="bold 22px sans-serif";
 
-ctx.textAlign="center";
+  function animate(time) {
 
-ctx.fillText(
-"IVY",
-r,
-r+8
-);
+    if (!startTime) {
 
+      startTime = time;
 
+    }
 
-// ================= POINTER =================
 
-ctx.beginPath();
+    let progress =
+      (time - startTime) /
+      duration;
 
-ctx.moveTo(r-25,0);
 
-ctx.lineTo(r+25,0);
+    if (progress > 1) {
 
-ctx.lineTo(r,45);
+      progress = 1;
 
-ctx.closePath();
+    }
 
-ctx.fillStyle="#ffd700";
 
-ctx.fill();
+    // ease out
+    let ease =
+      1 -
+      Math.pow(
+        1 - progress,
+        5
+      );
 
-}
 
+    angle =
+      startAngle +
+      (totalRotation * ease);
 
 
-// ================= SPIN =================
+    drawWheel();
 
-window.spin=function(){
 
-if(spinning)return;
+    if (progress < 1) {
 
+      requestAnimationFrame(
+        animate
+      );
 
-if(players.length<2){
+    } else {
 
-alert(
-"กรุณาโหลดรายชื่อก่อน และต้องมีคนแย่งอย่างน้อย 2 คน"
-);
+      // =========================
+      // บังคับตำแหน่งสุดท้าย
+      // =========================
 
-return;
+      angle =
+        startAngle +
+        totalRotation;
 
-}
 
+      drawWheel();
 
-spinning=true;
 
+      finishSpin();
 
+    }
 
-// สุ่มผู้ชนะก่อน
+  }
 
-selectedWinner=
 
-players[
-Math.floor(
-Math.random()*players.length
-)
-];
-
-
-
-let winnerIndex=
-players.indexOf(selectedWinner);
-
-
-
-let size=
-(Math.PI*2)/players.length;
-
-
-
-// ให้ช่องผู้ชนะหยุดตรงเข็มด้านบน
-
-let targetAngle=
-
-Math.PI/2
-
--
-
-(
-winnerIndex*size
-)
-
--
-
-(
-size/2
-);
-
-
-
-let startAngle=angle;
-
-
-
-let currentTurn=
-angle%(Math.PI*2);
-
-
-let difference=
-targetAngle-currentTurn;
-
-
-if(difference<0){
-
-difference+=Math.PI*2;
-
-}
-
-
-
-let totalRotation=
-
-(Math.PI*2*8)
-
-+
-
-difference;
-
-
-
-let startTime=null;
-
-let duration=7000;
-
-
-
-function animate(time){
-
-if(!startTime){
-
-startTime=time;
-
-}
-
-
-let progress=
-(time-startTime)/duration;
-
-
-if(progress>1){
-
-progress=1;
-
-}
-
-
-let ease=
-1-Math.pow(1-progress,5);
-
-
-angle=
-startAngle+
-(totalRotation*ease);
-
-
-drawWheel();
-
-
-
-if(progress<1){
-
-requestAnimationFrame(animate);
-
-}
-
-else{
-
-angle=
-targetAngle;
-
-
-drawWheel();
-
-finishSpin();
-
-}
-
-}
-
-
-requestAnimationFrame(animate);
+  requestAnimationFrame(
+    animate
+  );
 
 };
 
 
+// =========================
+// FINISH SPIN
+// =========================
 
-// ================= FINISH SPIN =================
+async function finishSpin() {
 
-async function finishSpin(){
-
-let winner=
-selectedWinner;
-
-
-let item=
-document.getElementById("wheelItem").value;
+  let winner =
+    selectedWinner;
 
 
-let winData=
-data.find(x=>
-
-x.item===item &&
-
-x.name===winner
-
-);
+  let item =
+    document.getElementById(
+      "wheelItem"
+    ).value;
 
 
-document.getElementById("winnerBox")
-.style.display="block";
+  // หาข้อมูลของผู้ชนะ
+  let winData =
+    data.find(
+      x =>
+        x.item === item &&
+        x.name === winner
+    );
 
 
-document.getElementById("winnerName")
-.innerHTML=
-"🏆 "+winner;
+  // =========================
+  // WINNER POPUP
+  // =========================
+
+  document.getElementById(
+    "winnerBox"
+  ).style.display = "block";
 
 
-document.getElementById("winnerItem")
-.innerHTML=
-
-`
-
-📦 ${item}
-
-<br>
-
-📄 หน้า ${winData?.page || "-"}
-
-<br>
-
-ชิ้น ${winData?.piece || "-"}
-
-`;
+  document.getElementById(
+    "winnerName"
+  ).innerHTML =
+    "🏆 " + winner;
 
 
+  document.getElementById(
+    "winnerItem"
+  ).innerHTML = `
 
-document.getElementById("result")
-.innerHTML=
-"🎉 ผู้ได้สิทธิ์: "+winner;
+    📦 ${item}
+
+    <br>
+
+    📄 หน้า ${winData?.page || "-"}
+
+    <br>
+
+    🔢 ชิ้น ${winData?.piece || "-"}
+
+  `;
 
 
+  document.getElementById(
+    "result"
+  ).innerHTML =
+    "🎉 ผู้ได้สิทธิ์: " +
+    winner;
 
-try{
 
-await addDoc(
+  // =========================
+  // SAVE HISTORY
+  // =========================
 
-collection(db,"history"),
+  try {
 
-{
+    await addDoc(
+      collection(db, "history"),
+      {
 
-item:item,
+        item: item,
 
-winner:winner,
+        winner: winner,
 
-page:winData?.page || "",
+        page:
+          winData?.page || "",
 
-piece:winData?.piece || "",
+        piece:
+          winData?.piece || "",
 
-time:new Date().toLocaleString("th-TH")
+        time:
+          new Date().toLocaleString(
+            "th-TH"
+          )
+
+      }
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "บันทึกประวัติไม่สำเร็จ"
+    );
+
+  }
+
+
+  await loadHistory();
+
+
+  spinning = false;
+
+  selectedWinner = null;
 
 }
 
-);
 
-}
+// =========================
+// CLOSE WINNER
+// =========================
 
-catch(error){
+window.closeWinner = function () {
 
-console.error(error);
-
-alert("บันทึกประวัติไม่สำเร็จ");
-
-}
-
-
-await loadHistory();
-
-
-spinning=false;
-
-selectedWinner=null;
-
-}
-
-
-
-// ================= CLOSE WINNER =================
-
-window.closeWinner=function(){
-
-document.getElementById("winnerBox")
-.style.display="none";
+  document.getElementById(
+    "winnerBox"
+  ).style.display = "none";
 
 };
 
 
+// =========================
+// HISTORY
+// =========================
 
-// ================= LOAD HISTORY =================
+window.loadHistory = async function () {
 
-window.loadHistory=async function(){
-
-let box=
-document.getElementById("history");
-
-
-if(!box)return;
-
-
-try{
-
-let snap=
-await getDocs(
-collection(db,"history")
-);
+  let box =
+    document.getElementById(
+      "history"
+    );
 
 
-historyData=[];
+  if (!box) return;
 
 
-snap.forEach(d=>{
+  try {
 
-historyData.push({
-
-id:d.id,
-
-...d.data()
-
-});
-
-});
+    let snap =
+      await getDocs(
+        collection(
+          db,
+          "history"
+        )
+      );
 
 
-historyData.sort((a,b)=>{
-
-return String(b.time)
-.localeCompare(String(a.time));
-
-});
+    historyData = [];
 
 
-renderHistory(historyData);
+    snap.forEach(d => {
 
-}
+      historyData.push({
 
-catch(error){
+        id: d.id,
 
-console.error(error);
+        ...d.data()
 
-box.innerHTML=
-"โหลดประวัติไม่สำเร็จ";
+      });
 
-}
+    });
+
+
+    historyData.sort(
+      (a, b) =>
+        String(b.time)
+          .localeCompare(
+            String(a.time)
+          )
+    );
+
+
+    renderHistory(
+      historyData
+    );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    box.innerHTML =
+      "โหลดประวัติไม่สำเร็จ";
+
+  }
 
 };
 
 
+// =========================
+// RENDER HISTORY
+// =========================
 
-// ================= RENDER HISTORY =================
+function renderHistory(list) {
 
-function renderHistory(list){
-
-let box=
-document.getElementById("history");
-
-
-if(!box)return;
-
-
-if(list.length===0){
-
-box.innerHTML=
-
-`
-
-<div class="player">
-
-ยังไม่มีประวัติ
-
-</div>
-
-`;
-
-return;
-
-}
+  let box =
+    document.getElementById(
+      "history"
+    );
 
 
-box.innerHTML=
+  if (!box) return;
 
-list.map(x=>`
 
-<div class="player">
+  if (list.length === 0) {
 
-📦 ${x.item || "-"}
+    box.innerHTML =
+      `<div class="player">
+        ยังไม่มีประวัติ
+      </div>`;
 
-<br>
+    return;
 
-🏆 ${x.winner || "-"}
+  }
 
-<br>
 
-📄 หน้า ${x.page || "-"}
+  box.innerHTML =
+    list
+      .map(x => `
 
-<br>
+        <div class="player">
 
-ชิ้น ${x.piece || "-"}
+          📦 ${x.item || "-"}
 
-<br>
+          <br>
 
-⏰ ${x.time || "-"}
+          🏆 ${x.winner || "-"}
 
-</div>
+          <br>
 
-`).join("");
+          📄 หน้า ${x.page || "-"}
+
+          <br>
+
+          🔢 ชิ้น ${x.piece || "-"}
+
+          <br>
+
+          ⏰ ${x.time || "-"}
+
+        </div>
+
+      `)
+      .join("");
 
 }
 
 
+// =========================
+// SEARCH HISTORY
+// =========================
 
-// ================= SEARCH HISTORY =================
+window.searchHistory = function () {
 
-window.searchHistory=function(){
-
-let input=
-document.getElementById("searchHistory");
-
-
-let key=
-input.value.trim().toLowerCase();
-
-
-if(key===""){
-
-renderHistory(historyData);
-
-return;
-
-}
+  let input =
+    document.getElementById(
+      "searchHistory"
+    );
 
 
-let result=
-historyData.filter(x=>{
-
-let item=
-String(x.item || "")
-.toLowerCase();
-
-let winner=
-String(x.winner || "")
-.toLowerCase();
+  let key =
+    input.value
+      .trim()
+      .toLowerCase();
 
 
-return item.includes(key)
-||
-winner.includes(key);
+  if (key === "") {
 
-});
+    renderHistory(
+      historyData
+    );
+
+    return;
+
+  }
 
 
-renderHistory(result);
+  let result =
+    historyData.filter(x => {
+
+      let item =
+        String(
+          x.item || ""
+        ).toLowerCase();
+
+
+      let winner =
+        String(
+          x.winner || ""
+        ).toLowerCase();
+
+
+      return (
+        item.includes(key) ||
+        winner.includes(key)
+      );
+
+    });
+
+
+  renderHistory(
+    result
+  );
 
 };
 
 
+// =========================
+// CLEAR BIDS
+// =========================
 
-// ================= CLEAR BIDS =================
+window.clearAll = async function () {
 
-window.clearAll=async function(){
-
-if(!confirm(
-"ล้างรายชื่อผู้ประมูลทั้งหมด?"
-)){
-
-return;
-
-}
-
-
-try{
-
-let snap=
-await getDocs(
-collection(db,"bids")
-);
+  if (
+    !confirm(
+      "ล้างรายชื่อผู้ประมูลทั้งหมด?"
+    )
+  ) return;
 
 
-let count=0;
+  try {
+
+    let snap =
+      await getDocs(
+        collection(
+          db,
+          "bids"
+        )
+      );
 
 
-for(const x of snap.docs){
-
-await deleteDoc(
-doc(db,"bids",x.id)
-);
-
-count++;
-
-}
+    let count = 0;
 
 
-alert(
-"ล้างรายชื่อแล้วทั้งหมด "
-+
-count
-+
-" รายการ"
-);
+    for (
+      const x of snap.docs
+    ) {
 
-}
+      await deleteDoc(
+        doc(
+          db,
+          "bids",
+          x.id
+        )
+      );
 
-catch(error){
+      count++;
 
-console.error(error);
+    }
 
-alert(
-"ล้างรายชื่อไม่สำเร็จ"
-);
 
-}
+    alert(
+      "ล้างรายชื่อแล้วทั้งหมด " +
+      count +
+      " รายการ"
+    );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "ล้างรายชื่อไม่สำเร็จ"
+    );
+
+  }
 
 };
 
 
+// =========================
+// CLEAR HISTORY
+// =========================
 
-// ================= CLEAR HISTORY =================
+window.clearHistory =
+async function () {
 
-window.clearHistory=async function(){
-
-if(!confirm(
-"ล้างประวัติผู้ชนะทั้งหมด?"
-)){
-
-return;
-
-}
-
-
-try{
-
-let snap=
-await getDocs(
-collection(db,"history")
-);
+  if (
+    !confirm(
+      "ล้างประวัติผู้ชนะทั้งหมด?"
+    )
+  ) return;
 
 
-let count=0;
+  try {
+
+    let snap =
+      await getDocs(
+        collection(
+          db,
+          "history"
+        )
+      );
 
 
-for(const x of snap.docs){
-
-await deleteDoc(
-doc(db,"history",x.id)
-);
-
-count++;
-
-}
+    let count = 0;
 
 
-historyData=[];
+    for (
+      const x of snap.docs
+    ) {
+
+      await deleteDoc(
+        doc(
+          db,
+          "history",
+          x.id
+        )
+      );
+
+      count++;
+
+    }
 
 
-renderHistory([]);
+    historyData = [];
 
 
-alert(
-"ล้างประวัติแล้วทั้งหมด "
-+
-count
-+
-" รายการ"
-);
+    renderHistory([]);
 
-}
 
-catch(error){
+    alert(
+      "ล้างประวัติแล้วทั้งหมด " +
+      count +
+      " รายการ"
+    );
 
-console.error(error);
 
-alert(
-"ล้างประวัติไม่สำเร็จ"
-);
+  } catch (error) {
 
-}
+    console.error(error);
+
+    alert(
+      "ล้างประวัติไม่สำเร็จ"
+    );
+
+  }
 
 };
