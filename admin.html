@@ -83,6 +83,7 @@ border-left:4px solid #8b5cf6;
 
 .bid-info{
 line-height:1.8;
+font-size:16px;
 }
 
 .edit-btn{
@@ -91,6 +92,41 @@ background:#2563eb;
 
 .delete-btn{
 background:#dc2626;
+}
+
+.save-btn{
+background:#16a34a;
+}
+
+.cancel-btn{
+background:#6b7280;
+}
+
+.edit-box{
+background:#171722;
+padding:15px;
+margin-top:15px;
+border-radius:12px;
+border:1px solid #555;
+}
+
+.edit-box label{
+display:block;
+margin-top:10px;
+margin-bottom:3px;
+font-weight:bold;
+}
+
+.edit-box input,
+.edit-box select{
+width:100%;
+margin:4px 0;
+}
+
+.empty{
+text-align:center;
+padding:20px;
+color:#aaa;
 }
 
 #winnerBox{
@@ -139,25 +175,12 @@ color:#ffd700;
 text-align:center;
 }
 
-.status{
-padding:10px;
-border-radius:10px;
-background:#292936;
-margin-top:10px;
-}
-
 .danger{
 background:#dc2626;
 }
 
 .warning{
 background:#f59e0b;
-}
-
-.empty{
-text-align:center;
-padding:20px;
-color:#aaa;
 }
 
 </style>
@@ -177,7 +200,9 @@ color:#aaa;
 
 <div class="card">
 
-<h3>🔐 เข้าสู่ระบบ Admin</h3>
+<h3>
+🔐 เข้าสู่ระบบ Admin
+</h3>
 
 <input
 id="pass"
@@ -207,19 +232,27 @@ placeholder="รหัสแอดมิน"
 </h2>
 
 <p>
-แอดมินสามารถแก้ไขหรือลบรายการเป็นรายคนได้
-โดยไม่ต้องล้างรายชื่อทั้งหมด
+แก้ไขหรือลบรายการเป็นรายรายการได้
+ไม่ต้องล้างรายชื่อทั้งหมด
 </p>
+
+
+<div style="display:flex;flex-wrap:wrap;">
 
 <input
 id="searchBids"
 placeholder="ค้นหาชื่อหรือไอเทม"
+style="flex:1;min-width:220px;"
 oninput="searchBids()"
 >
+
 
 <button onclick="renderBids()">
 🔄 แสดงทั้งหมด
 </button>
+
+</div>
+
 
 <div id="bidList"></div>
 
