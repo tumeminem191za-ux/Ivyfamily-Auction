@@ -8,8 +8,10 @@ import {
   addDoc,
   getDocs,
   deleteDoc,
+  updateDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 let data = [];
 let historyData = [];
@@ -25,13 +27,16 @@ let spinning = false;
 
 window.login = function () {
 
-  const pass = document.getElementById("pass").value;
+  const pass =
+    document.getElementById("pass").value;
 
   if (pass === "1234") {
 
     document.getElementById("admin").style.display = "block";
 
     loadHistory();
+
+    renderBids();
 
   } else {
 
@@ -47,6 +52,7 @@ window.login = function () {
 // =========================
 
 onSnapshot(
+
   query(
     collection(db, "bids"),
     orderBy("time", "asc")
@@ -71,8 +77,404 @@ onSnapshot(
 
     });
 
+    renderBids();
+
+  },
+
+  error => {
+
+    console.error(error);
+
+    const box =
+      document.getElementById("bidList");
+
+    if (box) {
+
+      box.innerHTML =
+        `<div class="empty">
+          โหลดรายชื่อไม่สำเร็จ
+        </div>`;
+
+    }
+
   }
+
 );
+
+
+// =========================
+// ESCAPE HTML
+// =========================
+
+function escapeHTML(value) {
+
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+// =========================
+// RENDER BIDS
+// =========================
+
+window.renderBids = function () {
+
+  const box =
+    document.getElementById("bidList");
+
+  if (!box) return;
+
+
+  const input =
+    document.getElementById("searchBids");
+
+  const key =
+    input
+      ? input.value.trim().toLowerCase()
+      : "";
+
+
+  let list = data;
+
+
+  if (key !== "") {
+
+    list = data.filter(x => {
+
+      const name =
+        String(x.name || "").toLowerCase();
+
+      const item =
+        String(x.item || "").toLowerCase();
+
+      const page =
+        String(x.page || "").toLowerCase();
+
+      const piece =
+        String(x.piece || "").toLowerCase();
+
+
+      return (
+        name.includes(key) ||
+        item.includes(key) ||
+        page.includes(key) ||
+        piece.includes(key)
+      );
+
+    });
+
+  }
+
+
+  if (list.length === 0) {
+
+    box.innerHTML =
+      `<div class="empty">
+        ไม่พบรายการ
+      </div>`;
+
+    return;
+
+  }
+
+
+  box.innerHTML = list.map(x => `
+
+    <div class="bid-row">
+
+      <div class="bid-info">
+
+        👤 <strong>
+          ${escapeHTML(x.name)}
+        </strong>
+
+        <br>
+
+        📦 ${escapeHTML(x.item)}
+
+        <br>
+
+        📄 ${escapeHTML(x.page)}
+
+        | 🔢 ชิ้น ${escapeHTML(x.piece)}
+
+        <br>
+
+        ⏰ ${escapeHTML(x.registerTime || "-")}
+
+      </div>
+
+
+      <button
+        class="edit-btn"
+        onclick="editBid('${x.id}')">
+
+        ✏️ แก้รายการ
+
+      </button>
+
+
+      <button
+        class="delete-btn"
+        onclick="deleteBid('${x.id}')">
+
+        🗑️ ลบรายการ
+
+      </button>
+
+    </div>
+
+  `).join("");
+
+};
+
+
+// =========================
+// SEARCH BIDS
+// =========================
+
+window.searchBids = function () {
+
+  renderBids();
+
+};
+
+
+// =========================
+// EDIT BID
+// =========================
+
+window.editBid = async function (id) {
+
+  const bid =
+    data.find(x => x.id === id);
+
+  if (!bid) {
+
+    alert("ไม่พบรายการนี้");
+
+    return;
+
+  }
+
+
+  /*
+   * ให้แอดมินแก้ทีละช่อง
+   */
+
+  const newName =
+    prompt(
+      "แก้ชื่อผู้ลงทะเบียน",
+      bid.name
+    );
+
+
+  if (newName === null) return;
+
+
+  const name =
+    newName.trim();
+
+
+  if (name === "") {
+
+    alert("ชื่อห้ามว่าง");
+
+    return;
+
+  }
+
+
+  const newItem =
+    prompt(
+      "แก้ไอเทม",
+      bid.item
+    );
+
+
+  if (newItem === null) return;
+
+
+  const item =
+    newItem.trim();
+
+
+  if (item === "") {
+
+    alert("ไอเทมห้ามว่าง");
+
+    return;
+
+  }
+
+
+  const newPage =
+    prompt(
+      "แก้หน้า",
+      bid.page
+    );
+
+
+  if (newPage === null) return;
+
+
+  const page =
+    newPage.trim();
+
+
+  if (page === "") {
+
+    alert("หน้าห้ามว่าง");
+
+    return;
+
+  }
+
+
+  const newPiece =
+    prompt(
+      "แก้เลขชิ้น",
+      bid.piece
+    );
+
+
+  if (newPiece === null) return;
+
+
+  const piece =
+    newPiece.trim();
+
+
+  if (piece === "") {
+
+    alert("เลขชิ้นห้ามว่าง");
+
+    return;
+
+  }
+
+
+  /*
+   * ตรวจว่ารายการใหม่
+   * ซ้ำกับรายการอื่นหรือไม่
+   */
+
+  const duplicate =
+    data.find(x =>
+
+      x.id !== id &&
+
+      x.name === name &&
+
+      x.item === item &&
+
+      x.page === page &&
+
+      x.piece === piece
+
+    );
+
+
+  if (duplicate) {
+
+    alert(
+      "มีรายการนี้อยู่แล้ว\n" +
+      "ไม่สามารถแก้เป็นรายการซ้ำได้"
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    await updateDoc(
+      doc(db, "bids", id),
+      {
+        name: name,
+        item: item,
+        page: page,
+        piece: piece
+      }
+    );
+
+
+    alert("✅ แก้รายการเรียบร้อยแล้ว");
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "แก้รายการไม่สำเร็จ"
+    );
+
+  }
+
+};
+
+
+// =========================
+// DELETE ONE BID
+// =========================
+
+window.deleteBid = async function (id) {
+
+  const bid =
+    data.find(x => x.id === id);
+
+  if (!bid) {
+
+    alert("ไม่พบรายการนี้");
+
+    return;
+
+  }
+
+
+  const ok =
+    confirm(
+      "ต้องการลบรายการนี้หรือไม่?\n\n" +
+      "👤 " + bid.name + "\n" +
+      "📦 " + bid.item + "\n" +
+      "📄 " + bid.page + "\n" +
+      "🔢 ชิ้น " + bid.piece
+    );
+
+
+  if (!ok) return;
+
+
+  try {
+
+    await deleteDoc(
+      doc(db, "bids", id)
+    );
+
+
+    alert(
+      "🗑️ ลบรายการเรียบร้อยแล้ว"
+    );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "ลบรายการไม่สำเร็จ"
+    );
+
+  }
+
+};
 
 
 // =========================
@@ -83,6 +485,7 @@ window.loadWheel = function () {
 
   const item =
     document.getElementById("wheelItem").value;
+
 
   players = [
     ...new Set(
@@ -97,7 +500,7 @@ window.loadWheel = function () {
     players
       .map(name => `
         <div class="player">
-          👤 ${name}
+          👤 ${escapeHTML(name)}
         </div>
       `)
       .join("");
@@ -116,7 +519,6 @@ window.loadWheel = function () {
   }
 
 
-  // รีเซ็ตวงล้อ
   angle = 0;
 
   drawWheel();
@@ -177,10 +579,6 @@ function drawWheel() {
       (i * size);
 
 
-    // =========================
-    // ช่องวงล้อ
-    // =========================
-
     ctx.beginPath();
 
     ctx.moveTo(r, r);
@@ -193,6 +591,7 @@ function drawWheel() {
       start + size
     );
 
+
     ctx.fillStyle =
       colors[i % colors.length];
 
@@ -204,10 +603,6 @@ function drawWheel() {
 
     ctx.stroke();
 
-
-    // =========================
-    // ชื่อ
-    // =========================
 
     ctx.save();
 
@@ -234,10 +629,6 @@ function drawWheel() {
 
   });
 
-
-  // =========================
-  // ตรงกลาง
-  // =========================
 
   ctx.beginPath();
 
@@ -267,10 +658,6 @@ function drawWheel() {
     r + 8
   );
 
-
-  // =========================
-  // เข็มด้านบน
-  // =========================
 
   ctx.beginPath();
 
@@ -339,19 +726,9 @@ function getWinnerFromPointer() {
     players.length;
 
 
-  /*
-   * เข็มอยู่ด้านบน
-   * = -90 องศา
-   */
-
   const pointerAngle =
     -Math.PI / 2;
 
-
-  /*
-   * หามุมของเข็ม
-   * เมื่อเทียบกับวงล้อที่หมุนอยู่
-   */
 
   const relativeAngle =
     normalizeAngle(
@@ -359,19 +736,11 @@ function getWinnerFromPointer() {
     );
 
 
-  /*
-   * หา segment ที่เข็มอยู่
-   */
-
   let winnerIndex =
     Math.floor(
       relativeAngle / size
     );
 
-
-  /*
-   * กันกรณี floating point
-   */
 
   if (
     winnerIndex < 0 ||
@@ -411,15 +780,6 @@ window.spin = function () {
   spinning = true;
 
 
-  /*
-   * รอบนี้จะไม่สุ่มชื่อผู้ชนะก่อน
-   *
-   * สุ่มแค่ตำแหน่งที่วงล้อจะหยุด
-   *
-   * จากนั้นค่อยดูว่าเข็มชี้ใคร
-   */
-
-
   const fullTurn =
     Math.PI * 2;
 
@@ -427,10 +787,6 @@ window.spin = function () {
   const randomStop =
     Math.random() * fullTurn;
 
-
-  /*
-   * หมุนอย่างน้อย 8 รอบ
-   */
 
   const totalRotation =
     (fullTurn * 8) +
@@ -449,7 +805,6 @@ window.spin = function () {
   let startTime = null;
 
 
-  // 7 วินาที
   const duration = 7000;
 
 
@@ -473,11 +828,6 @@ window.spin = function () {
 
     }
 
-
-    /*
-     * Ease Out
-     * ช่วงท้ายหมุนช้าลง
-     */
 
     const ease =
       1 -
@@ -503,16 +853,10 @@ window.spin = function () {
 
     } else {
 
-      /*
-       * บังคับตำแหน่งสุดท้าย
-       */
-
       angle =
         finalAngle;
 
-
       drawWheel();
-
 
       finishSpin();
 
@@ -534,14 +878,6 @@ window.spin = function () {
 
 async function finishSpin() {
 
-  /*
-   * สำคัญมาก
-   *
-   * ไม่สุ่มชื่อใหม่
-   *
-   * อ่านจากตำแหน่งเข็มจริง
-   */
-
   const winner =
     getWinnerFromPointer();
 
@@ -561,10 +897,6 @@ async function finishSpin() {
   }
 
 
-  /*
-   * หาข้อมูลของผู้ชนะ
-   */
-
   const winData =
     data.find(
       x =>
@@ -572,10 +904,6 @@ async function finishSpin() {
         x.name === winner
     );
 
-
-  // =========================
-  // POPUP
-  // =========================
 
   document.getElementById(
     "winnerBox"
@@ -585,22 +913,26 @@ async function finishSpin() {
   document.getElementById(
     "winnerName"
   ).innerHTML =
-    "🏆 " + winner;
+    "🏆 " + escapeHTML(winner);
 
 
   document.getElementById(
     "winnerItem"
   ).innerHTML = `
 
-    📦 ${item}
+    📦 ${escapeHTML(item)}
 
     <br>
 
-    📄 หน้า ${winData?.page || "-"}
+    📄 หน้า ${escapeHTML(
+      winData?.page || "-"
+    )}
 
     <br>
 
-    🔢 ชิ้น ${winData?.piece || "-"}
+    🔢 ชิ้น ${escapeHTML(
+      winData?.piece || "-"
+    )}
 
   `;
 
@@ -609,12 +941,8 @@ async function finishSpin() {
     "result"
   ).innerHTML =
     "🎉 ผู้ได้สิทธิ์: " +
-    winner;
+    escapeHTML(winner);
 
-
-  // =========================
-  // SAVE HISTORY
-  // =========================
 
   try {
 
@@ -777,23 +1105,33 @@ function renderHistory(list) {
 
         <div class="player">
 
-          📦 ${x.item || "-"}
+          📦 ${escapeHTML(
+            x.item || "-"
+          )}
 
           <br>
 
-          🏆 ${x.winner || "-"}
+          🏆 ${escapeHTML(
+            x.winner || "-"
+          )}
 
           <br>
 
-          📄 หน้า ${x.page || "-"}
+          📄 หน้า ${escapeHTML(
+            x.page || "-"
+          )}
 
           <br>
 
-          🔢 ชิ้น ${x.piece || "-"}
+          🔢 ชิ้น ${escapeHTML(
+            x.piece || "-"
+          )}
 
           <br>
 
-          ⏰ ${x.time || "-"}
+          ⏰ ${escapeHTML(
+            x.time || "-"
+          )}
 
         </div>
 
@@ -863,7 +1201,7 @@ window.searchHistory = function () {
 
 
 // =========================
-// CLEAR BIDS
+// CLEAR ALL BIDS
 // =========================
 
 window.clearAll = async function () {
