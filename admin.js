@@ -22,6 +22,20 @@ let spinning = false;
 
 
 // =========================
+// รายการไอเทม
+// =========================
+
+const ITEMS = [
+  "หลวนเฟิงลั่วหยาง",
+  "ญาณแท้เชี่ยวชาญชูโจว",
+  "ญาณแท้ชูโจว",
+  "เสียงสวรรค์ลั่วหยาง",
+  "หยกวิญญานฟ้า",
+  "ลายปักเมฆสูงส่ง"
+];
+
+
+// =========================
 // LOGIN
 // =========================
 
@@ -119,6 +133,55 @@ function escapeHTML(value) {
 
 
 // =========================
+// สร้าง SELECT ไอเทม
+// =========================
+
+function itemOptions(selected) {
+
+  return ITEMS.map(item => {
+
+    return `
+      <option
+        value="${escapeHTML(item)}"
+        ${item === selected ? "selected" : ""}>
+        ${escapeHTML(item)}
+      </option>
+    `;
+
+  }).join("");
+
+}
+
+
+// =========================
+// สร้าง SELECT หน้า 1-15
+// =========================
+
+function pageOptions(selected) {
+
+  let html = "";
+
+  for (let i = 1; i <= 15; i++) {
+
+    const page =
+      "หน้า " + i;
+
+    html += `
+      <option
+        value="${page}"
+        ${page === selected ? "selected" : ""}>
+        ${page}
+      </option>
+    `;
+
+  }
+
+  return html;
+
+}
+
+
+// =========================
 // RENDER BIDS
 // =========================
 
@@ -132,6 +195,7 @@ window.renderBids = function () {
 
   const input =
     document.getElementById("searchBids");
+
 
   const key =
     input
@@ -175,7 +239,11 @@ window.renderBids = function () {
 
     box.innerHTML =
       `<div class="empty">
-        ไม่พบรายการ
+        ${
+          key
+            ? "ไม่พบรายการที่ค้นหา"
+            : "ยังไม่มีรายชื่อผู้ประมูล"
+        }
       </div>`;
 
     return;
@@ -210,22 +278,105 @@ window.renderBids = function () {
       </div>
 
 
-      <button
-        class="edit-btn"
-        onclick="editBid('${x.id}')">
+      <div style="margin-top:10px;">
 
-        ✏️ แก้รายการ
+        <button
+          class="edit-btn"
+          onclick="startEdit('${x.id}')">
 
-      </button>
+          ✏️ แก้รายการ
+
+        </button>
 
 
-      <button
-        class="delete-btn"
-        onclick="deleteBid('${x.id}')">
+        <button
+          class="delete-btn"
+          onclick="deleteBid('${x.id}')">
 
-        🗑️ ลบรายการ
+          🗑️ ลบรายการ
 
-      </button>
+        </button>
+
+      </div>
+
+
+      <div
+        id="edit-${x.id}"
+        class="edit-box"
+        style="display:none;">
+
+        <h3>
+          ✏️ แก้รายการ
+        </h3>
+
+
+        <label>
+          👤 ชื่อ
+        </label>
+
+        <input
+          id="edit-name-${x.id}"
+          value="${escapeHTML(x.name)}"
+        >
+
+
+        <label>
+          📦 ไอเทม
+        </label>
+
+        <select
+          id="edit-item-${x.id}">
+
+          ${itemOptions(x.item)}
+
+        </select>
+
+
+        <label>
+          📄 หน้า
+        </label>
+
+        <select
+          id="edit-page-${x.id}">
+
+          ${pageOptions(x.page)}
+
+        </select>
+
+
+        <label>
+          🔢 เลขชิ้น
+        </label>
+
+        <input
+          id="edit-piece-${x.id}"
+          value="${escapeHTML(x.piece)}"
+          inputmode="numeric"
+        >
+
+
+        <div style="margin-top:10px;">
+
+          <button
+            class="save-btn"
+            onclick="saveEdit('${x.id}')">
+
+            💾 บันทึก
+
+          </button>
+
+
+          <button
+            class="cancel-btn"
+            onclick="cancelEdit('${x.id}')">
+
+            ❌ ยกเลิก
+
+          </button>
+
+        </div>
+
+      </div>
 
     </div>
 
@@ -235,7 +386,7 @@ window.renderBids = function () {
 
 
 // =========================
-// SEARCH BIDS
+// SEARCH
 // =========================
 
 window.searchBids = function () {
@@ -246,15 +397,64 @@ window.searchBids = function () {
 
 
 // =========================
-// EDIT BID
+// เปิดฟอร์มแก้ไข
 // =========================
 
-window.editBid = async function (id) {
+window.startEdit = function (id) {
 
-  const bid =
+  const box =
+    document.getElementById(
+      "edit-" + id
+    );
+
+  if (!box) {
+
+    alert("ไม่พบช่องแก้ไข");
+
+    return;
+
+  }
+
+
+  box.style.display = "block";
+
+  box.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+
+};
+
+
+// =========================
+// ยกเลิกแก้ไข
+// =========================
+
+window.cancelEdit = function (id) {
+
+  const box =
+    document.getElementById(
+      "edit-" + id
+    );
+
+  if (!box) return;
+
+  box.style.display = "none";
+
+};
+
+
+// =========================
+// บันทึกการแก้ไข
+// =========================
+
+window.saveEdit = async function (id) {
+
+  const oldData =
     data.find(x => x.id === id);
 
-  if (!bid) {
+
+  if (!oldData) {
 
     alert("ไม่พบรายการนี้");
 
@@ -263,106 +463,75 @@ window.editBid = async function (id) {
   }
 
 
-  /*
-   * ให้แอดมินแก้ทีละช่อง
-   */
+  const nameInput =
+    document.getElementById(
+      "edit-name-" + id
+    );
 
-  const newName =
-    prompt(
-      "แก้ชื่อผู้ลงทะเบียน",
-      bid.name
+  const itemInput =
+    document.getElementById(
+      "edit-item-" + id
+    );
+
+  const pageInput =
+    document.getElementById(
+      "edit-page-" + id
+    );
+
+  const pieceInput =
+    document.getElementById(
+      "edit-piece-" + id
     );
 
 
-  if (newName === null) return;
+  if (
+    !nameInput ||
+    !itemInput ||
+    !pageInput ||
+    !pieceInput
+  ) {
+
+    alert("ไม่พบช่องข้อมูลสำหรับแก้ไข");
+
+    return;
+
+  }
 
 
   const name =
-    newName.trim();
+    nameInput.value.trim();
+
+  const item =
+    itemInput.value;
+
+  const page =
+    pageInput.value;
+
+  const piece =
+    pieceInput.value.trim();
 
 
   if (name === "") {
 
-    alert("ชื่อห้ามว่าง");
+    alert("กรุณาใส่ชื่อ");
 
     return;
 
   }
-
-
-  const newItem =
-    prompt(
-      "แก้ไอเทม",
-      bid.item
-    );
-
-
-  if (newItem === null) return;
-
-
-  const item =
-    newItem.trim();
-
-
-  if (item === "") {
-
-    alert("ไอเทมห้ามว่าง");
-
-    return;
-
-  }
-
-
-  const newPage =
-    prompt(
-      "แก้หน้า",
-      bid.page
-    );
-
-
-  if (newPage === null) return;
-
-
-  const page =
-    newPage.trim();
-
-
-  if (page === "") {
-
-    alert("หน้าห้ามว่าง");
-
-    return;
-
-  }
-
-
-  const newPiece =
-    prompt(
-      "แก้เลขชิ้น",
-      bid.piece
-    );
-
-
-  if (newPiece === null) return;
-
-
-  const piece =
-    newPiece.trim();
 
 
   if (piece === "") {
 
-    alert("เลขชิ้นห้ามว่าง");
+    alert("กรุณาใส่เลขชิ้น");
 
     return;
 
   }
 
 
-  /*
-   * ตรวจว่ารายการใหม่
-   * ซ้ำกับรายการอื่นหรือไม่
-   */
+  // =========================
+  // ป้องกันรายการซ้ำ
+  // =========================
 
   const duplicate =
     data.find(x =>
@@ -384,7 +553,7 @@ window.editBid = async function (id) {
 
     alert(
       "มีรายการนี้อยู่แล้ว\n" +
-      "ไม่สามารถแก้เป็นรายการซ้ำได้"
+      "ไม่สามารถบันทึกเป็นรายการซ้ำได้"
     );
 
     return;
@@ -392,20 +561,42 @@ window.editBid = async function (id) {
   }
 
 
+  const ok =
+    confirm(
+      "ยืนยันการแก้ไขรายการนี้?\n\n" +
+      "👤 " + name + "\n" +
+      "📦 " + item + "\n" +
+      "📄 " + page + "\n" +
+      "🔢 ชิ้น " + piece
+    );
+
+
+  if (!ok) return;
+
+
   try {
 
     await updateDoc(
-      doc(db, "bids", id),
+
+      doc(
+        db,
+        "bids",
+        id
+      ),
+
       {
         name: name,
         item: item,
         page: page,
         piece: piece
       }
+
     );
 
 
-    alert("✅ แก้รายการเรียบร้อยแล้ว");
+    alert(
+      "✅ แก้รายการเรียบร้อยแล้ว"
+    );
 
 
   } catch (error) {
@@ -413,7 +604,8 @@ window.editBid = async function (id) {
     console.error(error);
 
     alert(
-      "แก้รายการไม่สำเร็จ"
+      "❌ แก้รายการไม่สำเร็จ\n" +
+      error.message
     );
 
   }
@@ -422,13 +614,14 @@ window.editBid = async function (id) {
 
 
 // =========================
-// DELETE ONE BID
+// ลบรายการเดียว
 // =========================
 
 window.deleteBid = async function (id) {
 
   const bid =
     data.find(x => x.id === id);
+
 
   if (!bid) {
 
@@ -455,7 +648,11 @@ window.deleteBid = async function (id) {
   try {
 
     await deleteDoc(
-      doc(db, "bids", id)
+      doc(
+        db,
+        "bids",
+        id
+      )
     );
 
 
@@ -469,7 +666,8 @@ window.deleteBid = async function (id) {
     console.error(error);
 
     alert(
-      "ลบรายการไม่สำเร็จ"
+      "❌ ลบรายการไม่สำเร็จ\n" +
+      error.message
     );
 
   }
@@ -484,7 +682,9 @@ window.deleteBid = async function (id) {
 window.loadWheel = function () {
 
   const item =
-    document.getElementById("wheelItem").value;
+    document.getElementById(
+      "wheelItem"
+    ).value;
 
 
   players = [
@@ -496,24 +696,35 @@ window.loadWheel = function () {
   ];
 
 
-  document.getElementById("players").innerHTML =
+  document.getElementById(
+    "players"
+  ).innerHTML =
+
     players
       .map(name => `
+
         <div class="player">
+
           👤 ${escapeHTML(name)}
+
         </div>
+
       `)
       .join("");
 
 
   if (players.length === 0) {
 
-    document.getElementById("result").innerHTML =
+    document.getElementById(
+      "result"
+    ).innerHTML =
       "ยังไม่มีผู้ลงชื่อสำหรับไอเทมนี้";
 
   } else {
 
-    document.getElementById("result").innerHTML =
+    document.getElementById(
+      "result"
+    ).innerHTML =
       `มีผู้แย่งสิทธิ์ ${players.length} คน`;
 
   }
@@ -535,8 +746,13 @@ function drawWheel() {
   const canvas =
     document.getElementById("wheel");
 
+
+  if (!canvas) return;
+
+
   const ctx =
     canvas.getContext("2d");
+
 
   const r =
     canvas.width / 2;
@@ -554,6 +770,7 @@ function drawWheel() {
 
 
   const colors = [
+
     "#ff595e",
     "#ffca3a",
     "#8ac926",
@@ -564,6 +781,7 @@ function drawWheel() {
     "#f72585",
     "#43aa8b",
     "#577590"
+
   ];
 
 
@@ -581,7 +799,11 @@ function drawWheel() {
 
     ctx.beginPath();
 
-    ctx.moveTo(r, r);
+    ctx.moveTo(
+      r,
+      r
+    );
+
 
     ctx.arc(
       r,
@@ -595,9 +817,13 @@ function drawWheel() {
     ctx.fillStyle =
       colors[i % colors.length];
 
+
     ctx.fill();
 
-    ctx.strokeStyle = "#fff";
+
+    ctx.strokeStyle =
+      "#fff";
+
 
     ctx.lineWidth = 3;
 
@@ -606,18 +832,29 @@ function drawWheel() {
 
     ctx.save();
 
-    ctx.translate(r, r);
+
+    ctx.translate(
+      r,
+      r
+    );
+
 
     ctx.rotate(
       start + (size / 2)
     );
 
-    ctx.fillStyle = "#fff";
+
+    ctx.fillStyle =
+      "#fff";
+
 
     ctx.font =
       "bold 16px sans-serif";
 
-    ctx.textAlign = "left";
+
+    ctx.textAlign =
+      "left";
+
 
     ctx.fillText(
       name,
@@ -625,10 +862,15 @@ function drawWheel() {
       5
     );
 
+
     ctx.restore();
 
   });
 
+
+  // =========================
+  // CENTER
+  // =========================
 
   ctx.beginPath();
 
@@ -640,17 +882,21 @@ function drawWheel() {
     Math.PI * 2
   );
 
-  ctx.fillStyle = "#111";
+  ctx.fillStyle =
+    "#111";
 
   ctx.fill();
 
 
-  ctx.fillStyle = "#ffd700";
+  ctx.fillStyle =
+    "#ffd700";
 
   ctx.font =
     "bold 22px sans-serif";
 
-  ctx.textAlign = "center";
+  ctx.textAlign =
+    "center";
+
 
   ctx.fillText(
     "IVY",
@@ -658,6 +904,10 @@ function drawWheel() {
     r + 8
   );
 
+
+  // =========================
+  // POINTER
+  // =========================
 
   ctx.beginPath();
 
@@ -678,7 +928,9 @@ function drawWheel() {
 
   ctx.closePath();
 
-  ctx.fillStyle = "#ffd700";
+
+  ctx.fillStyle =
+    "#ffd700";
 
   ctx.fill();
 
@@ -694,8 +946,10 @@ function normalizeAngle(value) {
   const full =
     Math.PI * 2;
 
+
   value =
     value % full;
+
 
   if (value < 0) {
 
@@ -703,13 +957,14 @@ function normalizeAngle(value) {
 
   }
 
+
   return value;
 
 }
 
 
 // =========================
-// FIND PLAYER UNDER POINTER
+// FIND WINNER
 // =========================
 
 function getWinnerFromPointer() {
@@ -805,7 +1060,8 @@ window.spin = function () {
   let startTime = null;
 
 
-  const duration = 7000;
+  const duration =
+    7000;
 
 
   function animate(time) {
@@ -856,7 +1112,9 @@ window.spin = function () {
       angle =
         finalAngle;
 
+
       drawWheel();
+
 
       finishSpin();
 
@@ -907,13 +1165,15 @@ async function finishSpin() {
 
   document.getElementById(
     "winnerBox"
-  ).style.display = "block";
+  ).style.display =
+    "block";
 
 
   document.getElementById(
     "winnerName"
   ).innerHTML =
-    "🏆 " + escapeHTML(winner);
+    "🏆 " +
+    escapeHTML(winner);
 
 
   document.getElementById(
@@ -924,15 +1184,19 @@ async function finishSpin() {
 
     <br>
 
-    📄 หน้า ${escapeHTML(
-      winData?.page || "-"
-    )}
+    📄 หน้า ${
+      escapeHTML(
+        winData?.page || "-"
+      )
+    }
 
     <br>
 
-    🔢 ชิ้น ${escapeHTML(
-      winData?.piece || "-"
-    )}
+    🔢 ชิ้น ${
+      escapeHTML(
+        winData?.piece || "-"
+      )
+    }
 
   `;
 
@@ -947,10 +1211,12 @@ async function finishSpin() {
   try {
 
     await addDoc(
+
       collection(
         db,
         "history"
       ),
+
       {
 
         item: item,
@@ -964,11 +1230,13 @@ async function finishSpin() {
           winData?.piece || "",
 
         time:
-          new Date().toLocaleString(
-            "th-TH"
-          )
+          new Date()
+            .toLocaleString(
+              "th-TH"
+            )
 
       }
+
     );
 
 
@@ -999,7 +1267,8 @@ window.closeWinner = function () {
 
   document.getElementById(
     "winnerBox"
-  ).style.display = "none";
+  ).style.display =
+    "none";
 
 };
 
@@ -1008,7 +1277,8 @@ window.closeWinner = function () {
 // LOAD HISTORY
 // =========================
 
-window.loadHistory = async function () {
+window.loadHistory =
+async function () {
 
   const box =
     document.getElementById(
@@ -1048,10 +1318,12 @@ window.loadHistory = async function () {
 
     historyData.sort(
       (a, b) =>
+
         String(b.time)
           .localeCompare(
             String(a.time)
           )
+
     );
 
 
@@ -1089,10 +1361,15 @@ function renderHistory(list) {
 
   if (list.length === 0) {
 
-    box.innerHTML =
-      `<div class="player">
+    box.innerHTML = `
+
+      <div class="player">
+
         ยังไม่มีประวัติ
-      </div>`;
+
+      </div>
+
+    `;
 
     return;
 
@@ -1100,38 +1377,49 @@ function renderHistory(list) {
 
 
   box.innerHTML =
+
     list
       .map(x => `
 
         <div class="player">
 
-          📦 ${escapeHTML(
-            x.item || "-"
-          )}
+          📦 ${
+            escapeHTML(
+              x.item || "-"
+            )
+          }
 
           <br>
 
-          🏆 ${escapeHTML(
-            x.winner || "-"
-          )}
+          🏆 ${
+            escapeHTML(
+              x.winner || "-"
+            )
+          }
 
           <br>
 
-          📄 หน้า ${escapeHTML(
-            x.page || "-"
-          )}
+          📄 หน้า ${
+            escapeHTML(
+              x.page || "-"
+            )
+          }
 
           <br>
 
-          🔢 ชิ้น ${escapeHTML(
-            x.piece || "-"
-          )}
+          🔢 ชิ้น ${
+            escapeHTML(
+              x.piece || "-"
+            )
+          }
 
           <br>
 
-          ⏰ ${escapeHTML(
-            x.time || "-"
-          )}
+          ⏰ ${
+            escapeHTML(
+              x.time || "-"
+            )
+          }
 
         </div>
 
@@ -1145,7 +1433,8 @@ function renderHistory(list) {
 // SEARCH HISTORY
 // =========================
 
-window.searchHistory = function () {
+window.searchHistory =
+function () {
 
   const input =
     document.getElementById(
@@ -1204,7 +1493,8 @@ window.searchHistory = function () {
 // CLEAR ALL BIDS
 // =========================
 
-window.clearAll = async function () {
+window.clearAll =
+async function () {
 
   if (
     !confirm(
@@ -1239,6 +1529,7 @@ window.clearAll = async function () {
         )
       );
 
+
       count++;
 
     }
@@ -1256,7 +1547,8 @@ window.clearAll = async function () {
     console.error(error);
 
     alert(
-      "ล้างรายชื่อไม่สำเร็จ"
+      "ล้างรายชื่อไม่สำเร็จ\n" +
+      error.message
     );
 
   }
@@ -1304,6 +1596,7 @@ async function () {
         )
       );
 
+
       count++;
 
     }
@@ -1327,7 +1620,8 @@ async function () {
     console.error(error);
 
     alert(
-      "ล้างประวัติไม่สำเร็จ"
+      "ล้างประวัติไม่สำเร็จ\n" +
+      error.message
     );
 
   }
